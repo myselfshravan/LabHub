@@ -130,6 +130,11 @@ html:root {
   --bgl-diff-del-word: #ff818266;
   --bgl-label-radius: 2em;
   --bgl-counter-bg: #818b981f;
+  --bgl-success-fg: #1a7f37;
+  --bgl-danger-fg: #d1242f;
+  --bgl-diffstat-add: #2da44e;
+  --bgl-diffstat-del: #cf222e;
+  --bgl-diffstat-neutral: #d1d9e0;
 }
 
 html.gl-dark:root {
@@ -175,6 +180,11 @@ html.gl-dark:root {
   --bgl-diff-del-num: #f851494d;
   --bgl-diff-del-word: #f8514966;
   --bgl-counter-bg: #2f3742;
+  --bgl-success-fg: #3fb950;
+  --bgl-danger-fg: #f85149;
+  --bgl-diffstat-add: #2ea043;
+  --bgl-diffstat-del: #da3633;
+  --bgl-diffstat-neutral: #3d444d;
 }
 
 /* ---- Layer 2: semantic roles -------------------------------------------------------------- */
@@ -231,6 +241,12 @@ html.gl-dark:root {
   --gl-button-confirm-primary-foreground-color-hover: #ffffff;
   --gl-button-confirm-primary-foreground-color-focus: #ffffff;
   --gl-button-confirm-primary-foreground-color-active: #ffffff;
+
+  /* Success / danger text (e.g. "+12 −3" line counts): GitHub's exact greens and reds. */
+  --gl-text-color-success: var(--bgl-success-fg);
+  --gl-text-color-danger: var(--bgl-danger-fg);
+  --gl-icon-color-success: var(--bgl-success-fg);
+  --gl-icon-color-danger: var(--bgl-danger-fg);
 
   /* Neutral badges are GitHub's "Counter": tab counts, totals. */
   --gl-badge-neutral-background-color-default: var(--bgl-counter-bg);
@@ -556,4 +572,12 @@ html:root .panels-container {
 }
 html:root .super-topbar {
   border-bottom: 1px solid var(--bgl-border);
+}
+
+/* Rapid Diffs colors its +/- counts directly. */
+html:root .rd-stats-added {
+  color: var(--bgl-success-fg);
+}
+html:root .rd-stats-removed {
+  color: var(--bgl-danger-fg);
 }

@@ -13,7 +13,16 @@ import type { PageContext } from '@/core/page';
 import { SEL } from '@/core/selectors';
 import { waitFor } from '@/core/dom';
 import css from './layout.css?inline';
-import { activeTab, availableTabs, repoTabs, rowState, shortCount, type TabId } from './model';
+import {
+  activeTab,
+  availableTabs,
+  diffstatBlocks,
+  parseDiffStats,
+  repoTabs,
+  rowState,
+  shortCount,
+  type TabId,
+} from './model';
 
 interface ApiProject {
   name: string;
@@ -89,6 +98,55 @@ function tagListRows(page: PageContext, signal: AbortSignal, onCleanup: (fn: () 
   });
 }
 
+/** GitLab's "+N −M" diff stats (overall and per file) get GitHub's five-square diffstat bar. */
+const DIFF_STATS = '.rd-diff-file-stats, .diff-stats-contents, .file-title-flex-parent .diff-stats';
+
+function decorateDiffStats(signal: AbortSignal, onCleanup: (fn: () => void) => void) {
+  const apply = () => {
+    for (const host of document.querySelectorAll<HTMLElement>(DIFF_STATS)) {
+      const own = host.querySelector(':scope > .bgl-diffstat');
+      const stats = parseDiffStats(host.textContent ?? '');
+      if (!stats) continue;
+      const key = `${stats.added}/${stats.removed}`;
+      if (own?.getAttribute('data-key') === key) continue;
+      own?.remove();
+      const bar = el('span', {
+        class: 'bgl-diffstat',
+        'data-key': key,
+        'aria-hidden': 'true',
+        title: `${stats.added + stats.removed} lines changed`,
+      });
+      for (const b of diffstatBlocks(stats.added, stats.removed)) {
+        bar.append(el('span', { class: `bgl-diffstat-${b}` }));
+      }
+      host.append(bar);
+    }
+  };
+  let queued = false;
+  const schedule = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      if (!signal.aborted) apply();
+    });
+  };
+  apply();
+  // Diff files render lazily as you scroll; our own bars are filtered out to avoid loops.
+  const obs = new MutationObserver((records) => {
+    if (
+      records.some((r) =>
+        [...r.addedNodes].some((n) => !(n as Element).classList?.contains('bgl-diffstat')),
+      )
+    ) {
+      schedule();
+    }
+  });
+  obs.observe(document.body, { childList: true, subtree: true });
+  signal.addEventListener('abort', () => obs.disconnect());
+  onCleanup(() => document.querySelectorAll('.bgl-diffstat').forEach((e) => e.remove()));
+}
+
 export default defineFeature({
   id: 'github-layout',
   title: 'GitHub layout',
@@ -132,6 +190,9 @@ export default defineFeature({
     }
 
     tagListRows(page, signal, onCleanup);
+    if (page.kind === 'mr' || /\/-\/(commit|compare)\b/.test(page.pathname)) {
+      decorateDiffStats(signal, onCleanup);
+    }
 
     if (page.scope?.type !== 'project') return;
     const fullPath = page.scope.fullPath;

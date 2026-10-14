@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { parsePage } from '@/core/page';
-import { activeTab, availableTabs, repoTabs, rowState, shortCount } from './model';
+import {
+  activeTab,
+  availableTabs,
+  diffstatBlocks,
+  parseDiffStats,
+  repoTabs,
+  rowState,
+  shortCount,
+} from './model';
 
 const page = (path: string, dataPage = '') =>
   parsePage(new URL(`https://gitlab.com${path}`), { dataset: { page: dataPage } });
@@ -60,5 +68,22 @@ describe('rowState', () => {
     expect(rowState(null, 'Draft: tidy', '')).toBe('draft');
     expect(rowState('opened', '[Draft] tidy', '')).toBe('draft');
     expect(rowState(null, 'Fix draft mode', '')).toBe('open');
+  });
+});
+
+describe('diffstat', () => {
+  it('splits five squares like GitHub', () => {
+    expect(diffstatBlocks(47, 0)).toEqual(['add', 'add', 'add', 'add', 'add']);
+    expect(diffstatBlocks(3, 2)).toEqual(['add', 'add', 'add', 'del', 'del']);
+    expect(diffstatBlocks(1, 1)).toEqual(['add', 'del', 'neutral', 'neutral', 'neutral']);
+    expect(diffstatBlocks(10, 90)).toEqual(['add', 'del', 'del', 'del', 'del']);
+    expect(diffstatBlocks(0, 0)).toEqual(Array(5).fill('neutral'));
+  });
+
+  it('parses GitLab stats text', () => {
+    expect(parseDiffStats('+47−0')).toEqual({ added: 47, removed: 0 });
+    expect(parseDiffStats('18 files + 1,094 − 12')).toEqual({ added: 1094, removed: 12 });
+    expect(parseDiffStats('+3 -2')).toEqual({ added: 3, removed: 2 });
+    expect(parseDiffStats('18 files')).toBeUndefined();
   });
 });

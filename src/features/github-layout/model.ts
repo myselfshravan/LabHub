@@ -93,3 +93,30 @@ export function rowState(listState: string | null, title: string, rowText: strin
   }
   return /^\s*(\[draft\]|draft:|\(draft\))/i.test(title) ? 'draft' : 'open';
 }
+
+export type DiffBlock = 'add' | 'del' | 'neutral';
+
+/**
+ * GitHub's five-square diffstat (■■■□□): squares split between additions and deletions in
+ * proportion; small changes fill only as many squares as lines changed.
+ */
+export function diffstatBlocks(added: number, removed: number): DiffBlock[] {
+  const total = added + removed;
+  const filled = Math.min(5, total);
+  const add = total ? Math.round((added / total) * filled) : 0;
+  const del = filled - add;
+  return [
+    ...Array<DiffBlock>(add).fill('add'),
+    ...Array<DiffBlock>(del).fill('del'),
+    ...Array<DiffBlock>(5 - filled).fill('neutral'),
+  ];
+}
+
+/** Reads "+47 −3" style stats text (GitLab uses a real minus sign, sometimes with spaces). */
+export function parseDiffStats(text: string): { added: number; removed: number } | undefined {
+  const a = /\+\s*([\d,]+)/.exec(text);
+  const r = /[−-]\s*([\d,]+)/.exec(text);
+  if (!a || !r) return undefined;
+  const n = (s: string) => Number(s.replaceAll(',', ''));
+  return { added: n(a[1]!), removed: n(r[1]!) };
+}
