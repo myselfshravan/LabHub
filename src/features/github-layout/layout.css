@@ -118,7 +118,7 @@ html.bgl-gh-layout .panels-container {
   min-width: 20px;
   padding: 0 6px;
   border-radius: 2em;
-  background: color-mix(in srgb, var(--bgl-l-muted) 20%, transparent);
+  background: var(--bgl-counter-bg, color-mix(in srgb, var(--bgl-l-muted) 20%, transparent));
   font-size: 12px;
   font-weight: 500;
   line-height: 18px;

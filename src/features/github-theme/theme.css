@@ -129,6 +129,7 @@ html:root {
   --bgl-diff-del-num: #ffcecb66;
   --bgl-diff-del-word: #ff818266;
   --bgl-label-radius: 2em;
+  --bgl-counter-bg: #818b981f;
 }
 
 html.gl-dark:root {
@@ -173,6 +174,7 @@ html.gl-dark:root {
   --bgl-diff-del: #f8514926;
   --bgl-diff-del-num: #f851494d;
   --bgl-diff-del-word: #f8514966;
+  --bgl-counter-bg: #2f3742;
 }
 
 /* ---- Layer 2: semantic roles -------------------------------------------------------------- */
@@ -292,7 +294,7 @@ html:root .gl-label.gl-label-scoped {
 /* Counter badges next to tab names: GitHub "Counter" (neutral pill). */
 html:root .gl-tabs-nav .gl-tab-counter-badge,
 html:root .gl-tabs-nav .badge {
-  background: color-mix(in srgb, var(--bgl-fg-muted) 18%, transparent);
+  background: var(--bgl-counter-bg);
   color: var(--bgl-fg);
   font-weight: 500;
   border-radius: 2em;
@@ -391,25 +393,52 @@ html:root .detail-page-header .title {
   line-height: 1.25;
 }
 
-/* Comments: GitHub's bordered comment card with a tinted header row. */
-html:root .timeline-entry.note-comment .timeline-content,
-html:root .note-wrapper .timeline-content {
+/* MR / issue description: GitHub puts the opening post in the same bordered card as comments. */
+html:root .merge-request-overview .detail-page-description [data-testid='description-content'] {
+  border: 1px solid var(--bgl-border);
+  border-radius: 6px;
+  padding: 16px;
+  background: var(--bgl-canvas);
+}
+
+/* Comments: GitHub's bordered card — tinted header row with the author, plain body. */
+html:root body .notes .timeline-entry.note-comment .timeline-entry-inner > .timeline-content {
   border: 1px solid var(--bgl-border);
   border-radius: 6px;
   background: var(--bgl-canvas);
   padding: 0;
   overflow: hidden;
 }
-html:root .timeline-entry.note-comment .note-header,
-html:root .note-wrapper .note-header {
+html:root body .notes .timeline-entry.note-comment .timeline-content > .note-header {
   background: var(--bgl-canvas-subtle);
   border-bottom: 1px solid var(--bgl-border);
-  padding: 8px 16px;
+  padding: 0 8px 0 8px;
   margin: 0;
+  min-height: 40px;
+  align-items: center;
 }
-html:root .timeline-entry.note-comment .note-body,
-html:root .note-wrapper .note-body {
+html:root body .notes .timeline-entry.note-comment .note-body {
   padding: 16px;
+}
+/* Threads: one card around the whole discussion, replies separated by a rule. */
+html:root body .notes .discussion-notes .discussion-body .card.discussion-wrapper,
+html:root body .notes .discussion .discussion-wrapper {
+  border: 1px solid var(--bgl-border);
+  border-radius: 6px;
+  background: var(--bgl-canvas);
+  overflow: hidden;
+}
+html:root body .notes .discussion-reply-holder {
+  background: var(--bgl-canvas-subtle);
+  border-top: 1px solid var(--bgl-border);
+}
+
+/* Merge box: GitHub's bordered merge panel. */
+html:root .mr-state-widget .mr-widget-section,
+html:root .mr-state-widget > .mr-section-container,
+html:root .mr-state-widget .mr-widget-workflow {
+  border-color: var(--bgl-border);
+  border-radius: 6px;
 }
 
 /* Markdown: GitHub's rhythm. */
