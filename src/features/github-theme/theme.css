@@ -232,6 +232,13 @@ html.gl-dark:root {
   --gl-button-confirm-primary-foreground-color-focus: #ffffff;
   --gl-button-confirm-primary-foreground-color-active: #ffffff;
 
+  /* Neutral badges are GitHub's "Counter": tab counts, totals. */
+  --gl-badge-neutral-background-color-default: var(--bgl-counter-bg);
+  --gl-badge-neutral-background-color-hover: var(--bgl-counter-bg);
+  --gl-badge-neutral-text-color-default: var(--bgl-fg);
+  --gl-badge-neutral-text-color-hover: var(--bgl-fg);
+  --gl-badge-neutral-icon-color-default: var(--bgl-fg-muted);
+
   /* Tabs: GitHub's coral underline. */
   --gl-tab-selected-indicator-color-default: var(--bgl-tab-underline);
   --gl-action-selected-border-color-active: var(--bgl-tab-underline);
@@ -293,7 +300,8 @@ html:root .gl-label.gl-label-scoped {
 
 /* Counter badges next to tab names: GitHub "Counter" (neutral pill). */
 html:root .gl-tabs-nav .gl-tab-counter-badge,
-html:root .gl-tabs-nav .badge {
+html:root .gl-tabs-nav .badge,
+html:root .merge-request-tabs .gl-badge {
   background: var(--bgl-counter-bg);
   color: var(--bgl-fg);
   font-weight: 500;

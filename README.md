@@ -3,6 +3,12 @@
 A personal Chrome extension that fixes GitLab's biggest annoyance — **stale pages** — and,
 step by step, makes GitLab feel more like GitHub.
 
+| MR list                                  | MR page                                  | Diff                               |
+| ---------------------------------------- | ---------------------------------------- | ---------------------------------- |
+| ![MR list](docs/screenshots/mr-list.jpg) | ![MR page](docs/screenshots/mr-page.jpg) | ![Diff](docs/screenshots/diff.jpg) |
+
+<sub>gitlab.com, dark mode, with the extension on.</sub>
+
 ## What it does
 
 ### Keep pages fresh (`freshness`)
