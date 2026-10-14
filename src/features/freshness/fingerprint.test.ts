@@ -140,6 +140,7 @@ describe('fetcherFor', () => {
       if (path in responses) return responses[path];
       throw new Error(`unexpected ${path}`);
     }) as GitLabApi['getPageJson'],
+    total: vi.fn(async () => undefined),
     project: (p) => `projects/${encodeURIComponent(p)}`,
     group: (p) => `groups/${encodeURIComponent(p)}`,
   });

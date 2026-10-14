@@ -22,13 +22,18 @@ export interface GitLabApi {
    * API needs auth (job details are 401 for signed-out visitors via REST, 200 here).
    */
   getPageJson<T>(path: string, init?: { signal?: AbortSignal }): Promise<T>;
+  /**
+   * Total item count of a REST list endpoint (its `X-Total` header). Undefined when GitLab
+   * omits it, which it does for very large result sets.
+   */
+  total(path: string, init?: { signal?: AbortSignal }): Promise<number | undefined>;
   /** `projects/:id` path segment for a project full path. */
   project(fullPath: string): string;
   group(fullPath: string): string;
 }
 
 export function createApi(origin: string): GitLabApi {
-  const getJson = async <T>(url: string, init: { signal?: AbortSignal }): Promise<T> => {
+  const request = async (url: string, init: { signal?: AbortSignal }): Promise<Response> => {
     const res = await fetch(url, {
       credentials: 'same-origin',
       // We exist to fight staleness: never accept a cached answer.
@@ -37,12 +42,20 @@ export function createApi(origin: string): GitLabApi {
       signal: init.signal,
     });
     if (!res.ok) throw new ApiError(res.status, url.slice(origin.length));
-    return (await res.json()) as T;
+    return res;
   };
+  const getJson = async <T>(url: string, init: { signal?: AbortSignal }): Promise<T> =>
+    (await (await request(url, init)).json()) as T;
   const strip = (path: string) => path.replace(/^\//, '');
   return {
     get: (path, init = {}) => getJson(`${origin}/api/v4/${strip(path)}`, init),
     getPageJson: (path, init = {}) => getJson(`${origin}/${strip(path)}`, init),
+    total: async (path, init = {}) => {
+      const res = await request(`${origin}/api/v4/${strip(path)}`, init);
+      void res.body?.cancel();
+      const n = Number(res.headers.get('x-total'));
+      return res.headers.has('x-total') && Number.isFinite(n) ? n : undefined;
+    },
     project: (p) => `projects/${encodeURIComponent(p)}`,
     group: (p) => `groups/${encodeURIComponent(p)}`,
   };

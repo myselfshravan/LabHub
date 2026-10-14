@@ -6,51 +6,69 @@ step by step, makes GitLab feel more like GitHub.
 ## What it does
 
 ### Keep pages fresh (`freshness`)
+
 GitLab renders most of a page once; come back to a tab later and the MR status, pipeline,
 approvals or list you're looking at may be out of date. Better GitLab takes a cheap API
 "fingerprint" of what the page shows and re-checks it:
 
-| Trigger | What happens on a change |
-| --- | --- |
-| You return to the tab (away ≥ 5 s) | Reloads automatically **if nothing would be lost**, else shows a banner |
-| Back/forward cache restore, network back online | Same as above |
-| Every 30 s while the tab is visible | Shows a "This page has updates · Reload" banner (never yanks the page while you read) |
+| Trigger                                         | What happens on a change                                                              |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------- |
+| You return to the tab (away ≥ 5 s)              | Reloads automatically **if nothing would be lost**, else shows a banner               |
+| Back/forward cache restore, network back online | Same as above                                                                         |
+| Every 30 s while the tab is visible             | Shows a "This page has updates · Reload" banner (never yanks the page while you read) |
 
 "Nothing would be lost" means: no typed text in a comment box or field, no focused input,
 no open editor/dialog, no text selection. Scroll position is restored after a reload.
 
 What's watched:
 
-| Page | Change detected |
-| --- | --- |
-| MR | new commits, pipeline status / new pipeline, comments, approvals, state, draft, conflicts |
-| Issue / work item | state, comments, any update |
-| Project MR / issue list | any row on screen updated, or a new item matching your filters |
-| Group / dashboard list | the same rows in the page's own sort order |
-| To-Do list | pending to-dos |
-| Pipeline, job, pipeline list | nothing to do: GitLab live-updates these itself; only the tab title is kept current |
-| Anything else (code, settings…) | no detection; reloads on return after 5 minutes away |
+| Page                            | Change detected                                                                           |
+| ------------------------------- | ----------------------------------------------------------------------------------------- |
+| MR                              | new commits, pipeline status / new pipeline, comments, approvals, state, draft, conflicts |
+| Issue / work item               | state, comments, any update                                                               |
+| Project MR / issue list         | any row on screen updated, or a new item matching your filters                            |
+| Group / dashboard list          | the same rows in the page's own sort order                                                |
+| To-Do list                      | pending to-dos                                                                            |
+| Pipeline, job, pipeline list    | nothing to do: GitLab live-updates these itself; only the tab title is kept current       |
+| Anything else (code, settings…) | no detection; reloads on return after 5 minutes away                                      |
 
 MR, pipeline and job tabs show the CI status in the tab title (✅ ❌ 🔄 ⏳ ⚠️), refreshed once a
 minute while the tab is in the background, so you can watch a pipeline from another tab.
 
 ### GitHub look (`github-theme`)
-GitHub Primer colors (light + dark) and system fonts, applied by retargeting GitLab's own
-`--gl-*` design tokens rather than restyling components, so it survives GitLab UI updates.
+
+GitLab, colored and shaped like GitHub, in light and dark mode:
+
+- GitLab's whole color palette swapped for GitHub's Primer palette, so every GitLab component
+  (including ones not styled by hand) comes out in GitHub colors
+- green primary buttons, 6px corners, coral tab underline, pill labels, counters
+- MR/issue lists as one bordered box, bold titles, muted meta line
+- big Open / Merged / Closed state pills, large "Title !123" headers
+- GitHub diff colors (classic and Rapid Diffs), comment cards, markdown rhythm, round avatars
+
+### GitHub layout (`github-layout`)
+
+- No permanent left sidebar: ☰ in the top bar (GitHub's spot) brings GitLab's sidebar back,
+  docked beside the page, and remembers the choice
+- Repo header on project pages: `owner / repo`, visibility, Star and Fork counts, and the
+  **Code · Issues · Merge requests · Pipelines** tab bar with open counts
+- GitHub's green / purple / red / grey state icons in front of every MR and issue in lists
 
 ### Short tab titles (`tab-titles`)
+
 Tabs lead with the repo name instead of burying it at the end:
 
-| GitLab's title | Better GitLab |
-| --- | --- |
-| Merge requests · Acme / experiments / agent-os-ui · GitLab | agent-os-ui · MRs |
-| Fix login (!12) · Merge requests · Acme / … / agent-os-ui · GitLab | agent-os-ui !12 Fix login |
-| Pipeline #99 · Acme / … / agent-os-ui · GitLab | agent-os-ui · Pipeline #99 |
-| README.md · main · Acme / … / agent-os-ui · GitLab | agent-os-ui · README.md |
+| GitLab's title                                                     | Better GitLab              |
+| ------------------------------------------------------------------ | -------------------------- |
+| Merge requests · Acme / experiments / agent-os-ui · GitLab         | agent-os-ui · MRs          |
+| Fix login (!12) · Merge requests · Acme / … / agent-os-ui · GitLab | agent-os-ui !12 Fix login  |
+| Pipeline #99 · Acme / … / agent-os-ui · GitLab                     | agent-os-ui · Pipeline #99 |
+| README.md · main · Acme / … / agent-os-ui · GitLab                 | agent-os-ui · README.md    |
 
 Combined with freshness it reads e.g. `✅ agent-os-ui !12 Fix login`.
 
 ### ⌘K / Ctrl+K (`command-palette`)
+
 Opens GitLab's "Search or go to…" palette (supports `>` commands, `@` users, `:` projects).
 Ignored inside editors, where GitLab uses ⌘K to insert a link.
 
@@ -74,6 +92,7 @@ For development, `npm run dev` builds `.output/chrome-mv3-dev`; load that folder
 hot-reloads on every change (keep `npm run dev` running). Don't load both at once.
 
 ### Self-hosted GitLab
+
 Open your instance, click the extension icon → **Enable on <host>** (or add it in Settings).
 Chrome asks for permission for that origin only; the content script is then registered for it.
 
@@ -97,9 +116,11 @@ pages and tears it down on navigation, toggle-off or relevant settings changes. 
 features in `src/features/index.ts`.
 
 ### Logs
+
 Everything logs as `[BGL:<namespace>]` in the page console (debug level only when **Debug
 logging** is on). All levels are buffered (last 1000) and viewable/exportable in Settings → Logs.
 
 ## How it talks to GitLab
+
 Read-only `GET /api/v4/...` from the page's own origin with your existing session cookie —
 no tokens, nothing leaves your browser.

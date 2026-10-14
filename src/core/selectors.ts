@@ -13,4 +13,6 @@ export const SEL = {
   listSortDirection: 'button[aria-label^="Sort direction"]',
   /** GitLab's paneled layout scrolls this element instead of the window. */
   scrollPanel: '.js-static-panel-inner',
+  /** Title <h1> of an MR (classic) or issue (work item) page. */
+  detailTitle: '[data-testid="title-content"], [data-testid="work-item-title"]',
 } as const;

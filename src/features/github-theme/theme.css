@@ -1,8 +1,23 @@
 /*
- * GitHub (Primer) look for GitLab, done by retargeting GitLab's own semantic design tokens
- * (--gl-*) instead of restyling components — survives GitLab UI changes far better.
- * `html:root` / `html.gl-dark:root` out-rank GitLab's `:root` / `.gl-dark` token blocks.
+ * Make GitLab look like GitHub (Primer).
+ *
+ * Layer 1 — palette: GitLab's components all resolve colors through its design tokens, which
+ * bottom out in a small palette (--gl-color-neutral/blue/green/red/purple/orange-*). Replacing
+ * that palette with Primer's turns every component GitHub-colored at once, including ones we
+ * never style by hand. Light and dark get separate neutral ladders because GitLab's dark mode
+ * maps its semantic tokens onto the opposite end of the same ladder.
+ *
+ * Layer 2 — semantic tokens where GitHub differs in *role*, not just hue (green primary
+ * buttons, 6px radii, orange tab underline, ...).
+ *
+ * Layer 3 — component rules for GitHub's signature shapes: boxed lists, pill labels, state
+ * badges, comment cards, diff colors. Kept to stable GitLab class names.
+ *
+ * `html:root` / `html.gl-dark:root` out-rank GitLab's own `:root` / `.gl-dark` token blocks.
  */
+
+/* ---- Layer 1: palette --------------------------------------------------------------------- */
+
 html:root {
   --bgl-sans:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif,
@@ -10,53 +25,225 @@ html:root {
   --bgl-mono:
     ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 
+  /* Primer light neutrals, laid on GitLab's ladder by role. */
+  --gl-color-neutral-0: #ffffff;
+  --gl-color-neutral-10: #f6f8fa;
+  --gl-color-neutral-50: #eff2f5;
+  --gl-color-neutral-100: #d1d9e0;
+  --gl-color-neutral-200: #c8d1da;
+  --gl-color-neutral-300: #afb8c1;
+  --gl-color-neutral-400: #818b98;
+  --gl-color-neutral-500: #6e7781;
+  --gl-color-neutral-600: #59636e;
+  --gl-color-neutral-700: #424a53;
+  --gl-color-neutral-800: #1f2328;
+  --gl-color-neutral-900: #25292e;
+  --gl-color-neutral-950: #1f2328;
+  --gl-color-neutral-1000: #010409;
+
+  /* Primer hues (scale 0–9 spread over GitLab's 50–950). */
+  --gl-color-blue-50: #ddf4ff;
+  --gl-color-blue-100: #b6e3ff;
+  --gl-color-blue-200: #80ccff;
+  --gl-color-blue-300: #54aeff;
+  --gl-color-blue-400: #218bff;
+  --gl-color-blue-500: #0969da;
+  --gl-color-blue-600: #0969da;
+  --gl-color-blue-700: #0550ae;
+  --gl-color-blue-800: #033d8b;
+  --gl-color-blue-900: #0a3069;
+  --gl-color-blue-950: #002155;
+
+  --gl-color-green-50: #dafbe1;
+  --gl-color-green-100: #aceebb;
+  --gl-color-green-200: #6fdd8b;
+  --gl-color-green-300: #4ac26b;
+  --gl-color-green-400: #2da44e;
+  --gl-color-green-500: #1a7f37;
+  --gl-color-green-600: #1a7f37;
+  --gl-color-green-700: #116329;
+  --gl-color-green-800: #044f1e;
+  --gl-color-green-900: #003d16;
+  --gl-color-green-950: #002d11;
+
+  --gl-color-red-50: #ffebe9;
+  --gl-color-red-100: #ffcecb;
+  --gl-color-red-200: #ffaba8;
+  --gl-color-red-300: #ff8182;
+  --gl-color-red-400: #fa4549;
+  --gl-color-red-500: #cf222e;
+  --gl-color-red-600: #cf222e;
+  --gl-color-red-700: #a40e26;
+  --gl-color-red-800: #82071e;
+  --gl-color-red-900: #660018;
+  --gl-color-red-950: #4c0014;
+
+  --gl-color-purple-50: #fbefff;
+  --gl-color-purple-100: #ecd8ff;
+  --gl-color-purple-200: #d8b9ff;
+  --gl-color-purple-300: #c297ff;
+  --gl-color-purple-400: #a475f9;
+  --gl-color-purple-500: #8250df;
+  --gl-color-purple-600: #8250df;
+  --gl-color-purple-700: #6639ba;
+  --gl-color-purple-800: #512a97;
+  --gl-color-purple-900: #3e1f79;
+  --gl-color-purple-950: #2e1461;
+
+  --gl-color-orange-50: #fff1e5;
+  --gl-color-orange-100: #ffd8b5;
+  --gl-color-orange-200: #ffb77c;
+  --gl-color-orange-300: #fb8f44;
+  --gl-color-orange-400: #e16f24;
+  --gl-color-orange-500: #bc4c00;
+  --gl-color-orange-600: #bc4c00;
+  --gl-color-orange-700: #953800;
+  --gl-color-orange-800: #762c00;
+  --gl-color-orange-900: #5c2200;
+  --gl-color-orange-950: #471700;
+
+  /* GitHub accent roles */
+  --bgl-fg: #1f2328;
+  --bgl-fg-muted: #59636e;
+  --bgl-canvas: #ffffff;
+  --bgl-canvas-subtle: #f6f8fa;
+  --bgl-canvas-inset: #f6f8fa;
+  --bgl-border: #d1d9e0;
+  --bgl-border-muted: #d1d9e0b3;
+  --bgl-accent: #0969da;
+  --bgl-open: #1f883d;
+  --bgl-open-fg: #1a7f37;
+  --bgl-merged: #8250df;
+  --bgl-closed: #cf222e;
+  --bgl-draft: #59636e;
+  --bgl-btn-bg: #f6f8fa;
+  --bgl-btn-hover: #eff2f5;
+  --bgl-btn-border: #d1d9e0;
+  --bgl-btn-primary: #1f883d;
+  --bgl-btn-primary-hover: #1c8139;
+  --bgl-tab-underline: #fd8c73;
+  --bgl-diff-add: #dafbe1;
+  --bgl-diff-add-num: #aceebb66;
+  --bgl-diff-add-word: #aceebb;
+  --bgl-diff-del: #ffebe9;
+  --bgl-diff-del-num: #ffcecb66;
+  --bgl-diff-del-word: #ff818266;
+  --bgl-label-radius: 2em;
+}
+
+html.gl-dark:root {
+  /* Primer dark neutrals: GitLab dark reads bg from 950, borders from 700, text from 50. */
+  --gl-color-neutral-0: #ffffff;
+  --gl-color-neutral-10: #f0f6fc;
+  --gl-color-neutral-50: #f0f6fc;
+  --gl-color-neutral-100: #d1d7e0;
+  --gl-color-neutral-200: #9198a1;
+  --gl-color-neutral-300: #b7bdc8;
+  --gl-color-neutral-400: #9198a1;
+  --gl-color-neutral-500: #7a828e;
+  --gl-color-neutral-600: #656c76;
+  --gl-color-neutral-700: #3d444d;
+  --gl-color-neutral-800: #262c36;
+  --gl-color-neutral-900: #151b23;
+  --gl-color-neutral-950: #0d1117;
+  --gl-color-neutral-1000: #010409;
+
+  --bgl-fg: #f0f6fc;
+  --bgl-fg-muted: #9198a1;
+  --bgl-canvas: #0d1117;
+  --bgl-canvas-subtle: #151b23;
+  --bgl-canvas-inset: #010409;
+  --bgl-border: #3d444d;
+  --bgl-border-muted: #3d444db3;
+  --bgl-accent: #4493f8;
+  --bgl-open: #238636;
+  --bgl-open-fg: #3fb950;
+  --bgl-merged: #8957e5;
+  --bgl-closed: #da3633;
+  --bgl-draft: #656c76;
+  --bgl-btn-bg: #212830;
+  --bgl-btn-hover: #262c36;
+  --bgl-btn-border: #3d444d;
+  --bgl-btn-primary: #238636;
+  --bgl-btn-primary-hover: #29903b;
+  --bgl-tab-underline: #f78166;
+  --bgl-diff-add: #2ea04326;
+  --bgl-diff-add-num: #3fb9504d;
+  --bgl-diff-add-word: #2ea04366;
+  --bgl-diff-del: #f8514926;
+  --bgl-diff-del-num: #f851494d;
+  --bgl-diff-del-word: #f8514966;
+}
+
+/* ---- Layer 2: semantic roles -------------------------------------------------------------- */
+
+html:root,
+html.gl-dark:root {
   --gl-font-family-regular: var(--bgl-sans);
   --font-family-sans-serif: var(--bgl-sans);
   --gl-font-family-monospace: var(--bgl-mono);
   --font-family-monospace: var(--bgl-mono);
 
-  /* Primer light */
-  --gl-background-color-default: #ffffff;
-  --gl-background-color-subtle: #f6f8fa;
-  --gl-background-color-section: #f6f8fa;
-  --gl-background-color-strong: #eff2f5;
-  --gl-background-color-overlap: #ffffff;
-  --gl-border-color-default: #d1d9e0;
-  --gl-border-color-subtle: #d1d9e0b3;
-  --gl-border-color-strong: #818b98;
-  --gl-text-color-default: #1f2328;
-  --gl-text-color-subtle: #59636e;
-  --gl-text-color-strong: #1f2328;
-  --gl-text-color-heading: #1f2328;
-  --gl-text-color-link: #0969da;
-  --gl-focus-ring-outer-color: #0969da;
-  /* Page chrome around the content panels (body, sidebar): Primer "canvas inset". */
-  --gl-application-chrome-background-color: #f6f8fa;
+  --gl-background-color-default: var(--bgl-canvas);
+  --gl-background-color-subtle: var(--bgl-canvas-subtle);
+  --gl-background-color-section: var(--bgl-canvas-subtle);
+  --gl-background-color-overlap: var(--bgl-canvas);
+  --gl-application-chrome-background-color: var(--bgl-canvas-inset);
+  --gl-border-color-default: var(--bgl-border);
+  --gl-border-color-section: var(--bgl-border);
+  --gl-border-color-subtle: var(--bgl-border-muted);
+  --gl-text-color-default: var(--bgl-fg);
+  --gl-text-color-strong: var(--bgl-fg);
+  --gl-text-color-heading: var(--bgl-fg);
+  --gl-text-color-subtle: var(--bgl-fg-muted);
+  --gl-text-color-link: var(--bgl-accent);
+  --gl-focus-ring-outer-color: var(--bgl-accent);
+  --gl-control-border-color-default: var(--bgl-border);
+  --gl-control-background-color-default: var(--bgl-canvas);
+
+  /* GitHub's 6px corners everywhere. */
+  --gl-border-radius-base: 6px;
+  --gl-border-radius-md: 6px;
+  --gl-border-radius-lg: 6px;
+  --gl-action-border-radius: 6px;
+  --gl-button-border-radius: 6px;
+
+  /* Buttons: grey default, green primary. */
+  --gl-button-default-primary-background-color-default: var(--bgl-btn-bg);
+  --gl-button-default-primary-background-color-hover: var(--bgl-btn-hover);
+  --gl-button-default-primary-background-color-focus: var(--bgl-btn-hover);
+  --gl-button-default-primary-background-color-active: var(--bgl-btn-hover);
+  --gl-button-default-primary-border-color-default: var(--bgl-btn-border);
+  --gl-button-default-primary-border-color-hover: var(--bgl-btn-border);
+  --gl-button-default-primary-border-color-focus: var(--bgl-btn-border);
+  --gl-button-default-primary-border-color-active: var(--bgl-btn-border);
+  --gl-button-default-primary-foreground-color-default: var(--bgl-fg);
+  --gl-button-default-primary-foreground-color-hover: var(--bgl-fg);
+  --gl-button-confirm-primary-background-color-default: var(--bgl-btn-primary);
+  --gl-button-confirm-primary-background-color-hover: var(--bgl-btn-primary-hover);
+  --gl-button-confirm-primary-background-color-focus: var(--bgl-btn-primary-hover);
+  --gl-button-confirm-primary-background-color-active: var(--bgl-btn-primary-hover);
+  --gl-button-confirm-primary-border-color-default: rgba(31, 35, 40, 0.15);
+  --gl-button-confirm-primary-border-color-hover: rgba(31, 35, 40, 0.15);
+  --gl-button-confirm-primary-foreground-color-default: #ffffff;
+  --gl-button-confirm-primary-foreground-color-hover: #ffffff;
+  --gl-button-confirm-primary-foreground-color-focus: #ffffff;
+  --gl-button-confirm-primary-foreground-color-active: #ffffff;
+
+  /* Tabs: GitHub's coral underline. */
+  --gl-tab-selected-indicator-color-default: var(--bgl-tab-underline);
+  --gl-action-selected-border-color-active: var(--bgl-tab-underline);
+
+  /* Left nav: GitHub's blue selected indicator, quiet grey selection. */
+  --gl-nav-item-selected-indicator-color: var(--bgl-accent);
 }
 
-html.gl-dark:root {
-  /* Primer dark */
-  --gl-background-color-default: #0d1117;
-  --gl-background-color-subtle: #151b23;
-  --gl-background-color-section: #151b23;
-  --gl-background-color-strong: #212830;
-  --gl-background-color-overlap: #151b23;
-  --gl-border-color-default: #3d444d;
-  --gl-border-color-subtle: #3d444db3;
-  --gl-border-color-strong: #656c76;
-  --gl-text-color-default: #f0f6fc;
-  --gl-text-color-subtle: #9198a1;
-  --gl-text-color-strong: #f0f6fc;
-  --gl-text-color-heading: #f0f6fc;
-  --gl-text-color-link: #4493f8;
-  --gl-focus-ring-outer-color: #1f6feb;
-  --gl-focus-ring-inner-color: #0d1117;
-  --gl-application-chrome-background-color: #010409;
-}
+/* ---- Layer 3: components ------------------------------------------------------------------ */
 
-/* Some GitLab rules set fonts directly instead of through tokens. */
 html:root body {
   font-family: var(--bgl-sans);
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 html:root code,
@@ -65,4 +252,271 @@ html:root kbd,
 html:root .code,
 html:root .diff-content {
   font-family: var(--bgl-mono);
+}
+
+/* Buttons: GitHub weight and height. */
+html:root .gl-button.btn {
+  font-weight: 500;
+  box-shadow: none;
+}
+html:root .gl-button.btn-confirm:not(.btn-confirm-secondary):not(.btn-confirm-tertiary) {
+  border: 1px solid rgba(31, 35, 40, 0.15);
+}
+
+/* Tabs: bold active tab, 2px coral underline (GitHub UnderlineNav). */
+html:root .gl-tabs-nav .nav-link.active,
+html:root .gl-tabs-nav .gl-tab-nav-item-active {
+  font-weight: 600;
+  color: var(--bgl-fg);
+  box-shadow: inset 0 -2px 0 0 var(--bgl-tab-underline);
+}
+html:root .gl-tabs-nav .nav-link:hover:not(.active) {
+  box-shadow: inset 0 -2px 0 0 var(--bgl-border);
+}
+
+/* Labels: round pills, like GitHub. Scoped labels keep their two halves. */
+html:root .gl-label,
+html:root .gl-label .gl-label-link,
+html:root .gl-label .gl-label-text,
+html:root .gl-label .gl-label-text-scoped {
+  border-radius: var(--bgl-label-radius);
+}
+html:root .gl-label .gl-label-text {
+  font-weight: 500;
+  font-size: 12px;
+}
+html:root .gl-label.gl-label-scoped {
+  box-shadow: inset 0 0 0 1px var(--label-inset-border, currentColor);
+}
+
+/* Counter badges next to tab names: GitHub "Counter" (neutral pill). */
+html:root .gl-tabs-nav .gl-tab-counter-badge,
+html:root .gl-tabs-nav .badge {
+  background: color-mix(in srgb, var(--bgl-fg-muted) 18%, transparent);
+  color: var(--bgl-fg);
+  font-weight: 500;
+  border-radius: 2em;
+}
+
+/* MR / issue lists: one bordered box, row dividers, header bar — GitHub's issue list. */
+html:root .issuable-list-container .issuable-list {
+  border: 1px solid var(--bgl-border);
+  border-radius: 0 0 6px 6px;
+  overflow: hidden;
+}
+html:root .issuable-list-container .issuable-list > li {
+  border-bottom: 1px solid var(--bgl-border-muted);
+  border-top: 0;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+html:root .issuable-list-container .issuable-list > li:last-child {
+  border-bottom: 0;
+}
+html:root .issuable-list-container .issuable-list > li:hover {
+  background: var(--bgl-canvas-subtle);
+}
+html:root .issuable-list-container .issuable-list .issue-title-text,
+html:root .issuable-list-container .issuable-list [data-testid='issuable-title-link'] {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--bgl-fg);
+}
+html:root .issuable-list-container .issuable-list [data-testid='issuable-title-link']:hover {
+  color: var(--bgl-accent);
+}
+/* Row meta ("!123 · created 2 hours ago by X"): GitHub's small muted line. */
+html:root .issuable-list-container .issuable-list .issuable-info {
+  font-size: 12px;
+  color: var(--bgl-fg-muted);
+}
+
+/* Issue / MR header state badge: GitHub's big colored "State" pill. */
+html:root .detail-page-description .gl-badge.badge-pill,
+html:root .issue-sticky-header .gl-badge.badge-pill,
+html:root .merge-request-sticky-header .gl-badge.badge-pill,
+html:root [data-testid='issuable-status-badge'],
+html:root .gl-badge.bgl-state-badge {
+  --gl-badge-icon-color: #ffffff;
+  border-radius: 2em;
+  padding: 5px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  border: 0;
+}
+html:root .detail-page-description .gl-badge.badge-pill.badge-success,
+html:root .issue-sticky-header .gl-badge.badge-pill.badge-success,
+html:root .merge-request-sticky-header .gl-badge.badge-pill.badge-success,
+html:root [data-testid='issuable-status-badge'].badge-success,
+html:root .gl-badge.bgl-state-badge.badge-success {
+  background: var(--bgl-open);
+}
+html:root .detail-page-description .gl-badge.badge-pill.badge-info,
+html:root .issue-sticky-header .gl-badge.badge-pill.badge-info,
+html:root .merge-request-sticky-header .gl-badge.badge-pill.badge-info,
+html:root [data-testid='issuable-status-badge'].badge-info,
+html:root .gl-badge.bgl-state-badge.badge-info {
+  background: var(--bgl-merged);
+}
+html:root .detail-page-description .gl-badge.badge-pill.badge-danger,
+html:root .issue-sticky-header .gl-badge.badge-pill.badge-danger,
+html:root .merge-request-sticky-header .gl-badge.badge-pill.badge-danger,
+html:root [data-testid='issuable-status-badge'].badge-danger,
+html:root .gl-badge.bgl-state-badge.badge-danger {
+  background: var(--bgl-closed);
+}
+html:root .detail-page-description .gl-badge.badge-pill .gl-icon,
+html:root .issue-sticky-header .gl-badge.badge-pill .gl-icon,
+html:root .merge-request-sticky-header .gl-badge.badge-pill .gl-icon,
+html:root [data-testid='issuable-status-badge'] .gl-icon,
+html:root .gl-badge.bgl-state-badge .gl-icon {
+  color: #ffffff;
+  fill: currentColor;
+}
+/* The "#123" GitHub shows after an issue/PR title (added by the GitHub layout feature). */
+html:root .bgl-title-ref {
+  margin-left: 8px;
+  font-weight: 300;
+  color: var(--bgl-fg-muted);
+}
+
+/* Page titles: GitHub's large, regular-weight issue/PR title. */
+html:root [data-testid='title-content'],
+html:root [data-testid='work-item-title'],
+html:root .merge-request-title-text,
+html:root .detail-page-header .title {
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+/* Comments: GitHub's bordered comment card with a tinted header row. */
+html:root .timeline-entry.note-comment .timeline-content,
+html:root .note-wrapper .timeline-content {
+  border: 1px solid var(--bgl-border);
+  border-radius: 6px;
+  background: var(--bgl-canvas);
+  padding: 0;
+  overflow: hidden;
+}
+html:root .timeline-entry.note-comment .note-header,
+html:root .note-wrapper .note-header {
+  background: var(--bgl-canvas-subtle);
+  border-bottom: 1px solid var(--bgl-border);
+  padding: 8px 16px;
+  margin: 0;
+}
+html:root .timeline-entry.note-comment .note-body,
+html:root .note-wrapper .note-body {
+  padding: 16px;
+}
+
+/* Markdown: GitHub's rhythm. */
+html:root .md {
+  font-size: 14px;
+  line-height: 1.5;
+}
+html:root .md h1,
+html:root .md h2 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--bgl-border-muted);
+  font-weight: 600;
+}
+html:root .md code:not(pre code) {
+  padding: 0.2em 0.4em;
+  font-size: 85%;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bgl-fg-muted) 20%, transparent);
+  color: inherit;
+}
+html:root .md pre {
+  background: var(--bgl-canvas-subtle);
+  border: 0;
+  border-radius: 6px;
+  padding: 16px;
+}
+html:root .md blockquote {
+  border-left: 0.25em solid var(--bgl-border);
+  color: var(--bgl-fg-muted);
+  padding: 0 1em;
+}
+
+/* Diffs: GitHub's green/red rows and word highlights, grey file headers. GitLab's diff views
+   (classic and "Rapid Diffs") read these variables from the syntax-highlight theme. */
+html:root .code-syntax-highlight-theme,
+html:root .code {
+  --code-new-diff-background-color: var(--bgl-diff-add);
+  --code-new-diff-line-number-background-color: var(--bgl-diff-add-num);
+  --code-new-inline-diff-background-color: var(--bgl-diff-add-word);
+  --code-old-diff-background-color: var(--bgl-diff-del);
+  --code-old-diff-line-number-background-color: var(--bgl-diff-del-num);
+  --code-old-inline-diff-background-color: var(--bgl-diff-del-word);
+}
+/* Dark mode: code on GitHub's canvas instead of the syntax theme's own grey. */
+html.gl-dark:root .code-syntax-highlight-theme,
+html.gl-dark:root .code.dark {
+  --code-background: var(--bgl-canvas);
+  --code-line-number-background-color: var(--bgl-canvas);
+}
+html:root {
+  --diff-addition-color: var(--bgl-diff-add-num);
+  --diff-deletion-color: var(--bgl-diff-del-num);
+}
+html:root .rd-diff-file-header {
+  background: var(--bgl-canvas-subtle);
+}
+html:root .diff-file .file-title,
+html:root .diff-file .file-title-flex-parent {
+  background: var(--bgl-canvas-subtle);
+  border-color: var(--bgl-border);
+}
+html:root .diff-file {
+  border-radius: 6px;
+}
+html:root .diff-content .line_content.new,
+html:root .diff-content .line_holder.new .line_content,
+html:root .diff-grid-row .line_content.new {
+  background-color: var(--bgl-diff-add);
+}
+html:root .diff-content .line_content.old,
+html:root .diff-content .line_holder.old .line_content,
+html:root .diff-grid-row .line_content.old {
+  background-color: var(--bgl-diff-del);
+}
+html:root .diff-content .diff-line-num.new,
+html:root .diff-content .line_holder.new .diff-line-num,
+html:root .diff-grid-row .diff-line-num.new {
+  background-color: var(--bgl-diff-add-num);
+  border-color: transparent;
+}
+html:root .diff-content .diff-line-num.old,
+html:root .diff-content .line_holder.old .diff-line-num,
+html:root .diff-grid-row .diff-line-num.old {
+  background-color: var(--bgl-diff-del-num);
+  border-color: transparent;
+}
+html:root .diff-content .line_content.new span.idiff {
+  background-color: var(--bgl-diff-add-word);
+}
+html:root .diff-content .line_content.old span.idiff {
+  background-color: var(--bgl-diff-del-word);
+}
+
+/* Avatars: GitHub's circles for people. */
+html:root img.avatar:not(.avatar-tile):not(.project-avatar),
+html:root .gl-avatar-circle {
+  border-radius: 50%;
+}
+
+/* Page frame: GitHub is flat — no floating rounded panel, just a bordered header bar. */
+html:root .layout-page.page-with-super-sidebar {
+  padding: 0;
+}
+html:root .panels-container {
+  border-radius: 0;
+  border-width: 0 0 0 1px;
+}
+html:root .super-topbar {
+  border-bottom: 1px solid var(--bgl-border);
 }

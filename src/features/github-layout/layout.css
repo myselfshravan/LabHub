@@ -1,0 +1,228 @@
+/*
+ * GitHub page structure for project pages. Uses the theme's --bgl-* roles when the theme is on
+ * and falls back to GitLab's own tokens when it's off.
+ */
+html.bgl-gh-layout {
+  --bgl-l-fg: var(--bgl-fg, var(--gl-text-color-default));
+  --bgl-l-muted: var(--bgl-fg-muted, var(--gl-text-color-subtle));
+  --bgl-l-border: var(--bgl-border, var(--gl-border-color-default));
+  --bgl-l-subtle: var(--bgl-canvas-subtle, var(--gl-background-color-subtle));
+  --bgl-l-canvas: var(--bgl-canvas, var(--gl-background-color-default));
+  --bgl-l-accent: var(--bgl-accent, var(--gl-text-color-link));
+  --bgl-l-underline: var(--bgl-tab-underline, #fd8c73);
+}
+
+/* ---- Sidebar: hidden until ☰ (GitHub has no permanent left nav) ------------------------- */
+
+/* Closed: drop the sidebar and its grid column, so the page takes the full width. Open is
+   simply GitLab's own layout, so the sidebar docks beside the page instead of covering it. */
+html.bgl-gh-layout:not(.bgl-sidebar-open) .page-with-panels .layout-page.page-with-super-sidebar {
+  grid-template-columns: 0 minmax(0, 1fr) auto auto;
+}
+html.bgl-gh-layout:not(.bgl-sidebar-open) .layout-page .super-sidebar-wrapper {
+  display: none;
+}
+html.bgl-gh-layout .bgl-menu-btn[aria-pressed='true'] {
+  background: var(--gl-button-default-tertiary-background-color-hover, rgba(0, 0, 0, 0.06));
+}
+
+/* GitLab's breadcrumb bar repeats what the repo header and tabs already say; keep it only
+   when a page has put actions into it. */
+html.bgl-gh-layout .panel-header:not(:has(.js-panel-actions-portal-target > *)) {
+  display: none;
+}
+html.bgl-gh-layout .panels-container {
+  border-left-width: 0;
+}
+
+/* ---- Repo header ----------------------------------------------------------------------- */
+
+.bgl-repo-header {
+  padding: 16px 32px 0;
+  border-bottom: 1px solid var(--bgl-l-border);
+  background: var(--bgl-l-canvas);
+  font-size: 14px;
+  color: var(--bgl-l-fg);
+}
+.bgl-repo-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.bgl-repo-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 20px;
+  color: var(--bgl-l-muted);
+}
+.bgl-repo-title a {
+  color: var(--bgl-l-accent);
+  text-decoration: none;
+}
+.bgl-repo-title a:hover {
+  text-decoration: underline;
+}
+.bgl-repo-title .bgl-owner {
+  font-weight: 400;
+}
+.bgl-repo-title .bgl-repo {
+  font-weight: 600;
+}
+.bgl-repo-title .bgl-sep {
+  color: var(--bgl-l-muted);
+}
+.bgl-label-pill {
+  border: 1px solid var(--bgl-l-border);
+  border-radius: 2em;
+  padding: 0 7px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--bgl-l-muted);
+}
+
+.bgl-repo-actions {
+  display: flex;
+  gap: 8px;
+}
+.bgl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--bgl-btn-border, var(--bgl-l-border));
+  border-radius: 6px;
+  background: var(--bgl-btn-bg, var(--bgl-l-subtle));
+  color: var(--bgl-l-fg);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.bgl-btn:hover {
+  background: var(--bgl-btn-hover, var(--bgl-l-subtle));
+  color: var(--bgl-l-fg);
+  text-decoration: none;
+}
+.bgl-btn .bgl-octicon {
+  color: var(--bgl-l-muted);
+}
+
+.bgl-counter {
+  display: inline-block;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 2em;
+  background: color-mix(in srgb, var(--bgl-l-muted) 20%, transparent);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: center;
+  color: var(--bgl-l-fg);
+}
+.bgl-counter:empty {
+  display: none;
+}
+
+/* ---- Tabs (GitHub UnderlineNav) ---------------------------------------------------------- */
+
+.bgl-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.bgl-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  height: 48px;
+  color: var(--bgl-l-fg);
+  font-size: 14px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.bgl-tab .bgl-octicon {
+  color: var(--bgl-l-muted);
+}
+.bgl-tab:hover {
+  color: var(--bgl-l-fg);
+  text-decoration: none;
+}
+.bgl-tab:hover::before {
+  content: '';
+  position: absolute;
+  inset: 8px 0;
+  border-radius: 6px;
+  background: var(--bgl-l-subtle);
+  z-index: -1;
+}
+.bgl-tab[aria-current='page'] {
+  font-weight: 600;
+}
+.bgl-tab[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 6px;
+  background: var(--bgl-l-underline);
+}
+
+@media (max-width: 768px) {
+  .bgl-repo-header {
+    padding: 12px 16px 0;
+  }
+  .bgl-repo-title {
+    font-size: 16px;
+  }
+}
+
+/* ---- List rows: GitHub's colored state icons ---------------------------------------------- */
+
+html.bgl-gh-layout .issuable-list li[data-bgl-state] .issue-title::before {
+  content: '';
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  vertical-align: -3px;
+  background-color: var(--bgl-row-color);
+  -webkit-mask: var(--bgl-row-icon) center / contain no-repeat;
+  mask: var(--bgl-row-icon) center / contain no-repeat;
+}
+html.bgl-gh-layout .issuable-list li[data-bgl-state] {
+  /* issue-opened */
+  --bgl-row-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z'/%3E%3Cpath d='M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z'/%3E%3C/svg%3E");
+  --bgl-row-color: var(--bgl-open-fg, #1a7f37);
+}
+html.bgl-gh-layout .issuable-list li.merge-request[data-bgl-state] {
+  /* git-pull-request */
+  --bgl-row-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z'/%3E%3C/svg%3E");
+}
+html.bgl-gh-layout .issuable-list li[data-bgl-state='draft'] {
+  --bgl-row-color: var(--bgl-draft, #59636e);
+}
+html.bgl-gh-layout .issuable-list li.merge-request[data-bgl-state='merged'] {
+  /* git-merge */
+  --bgl-row-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.45 5.154A4.25 4.25 0 0 0 9.25 7.5h1.378a2.251 2.251 0 1 1 0 1.5H9.25A5.734 5.734 0 0 1 5 7.123v3.505a2.25 2.25 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.95-.218ZM4.25 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm8.5-4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM5 3.25a.75.75 0 1 0 0 .005V3.25Z'/%3E%3C/svg%3E");
+  --bgl-row-color: var(--bgl-merged, #8250df);
+}
+html.bgl-gh-layout .issuable-list li.merge-request[data-bgl-state='closed'] {
+  --bgl-row-color: var(--bgl-closed, #cf222e);
+}
+/* Closed issues: GitHub's purple "completed" check. */
+html.bgl-gh-layout .issuable-list li:not(.merge-request)[data-bgl-state='closed'] {
+  --bgl-row-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z'/%3E%3Cpath d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z'/%3E%3C/svg%3E");
+  --bgl-row-color: var(--bgl-merged, #8250df);
+}
