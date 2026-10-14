@@ -7,6 +7,8 @@ import {
   fetcherFor,
   listFingerprint,
   listQuery,
+  renderedIids,
+  renderedListFingerprint,
 } from './fingerprint';
 
 const fp = (fields: Record<string, string | number | null>) => ({ fields });
@@ -54,6 +56,45 @@ describe('list helpers', () => {
   });
 });
 
+describe('rendered list', () => {
+  it('reads row iids from the list DOM', () => {
+    document.body.innerHTML = `
+      <a data-testid="issuable-title-link" href="/o/r/-/merge_requests/12">a</a>
+      <a data-testid="issuable-title-link" href="/o/r/-/work_items/7">b</a>
+      <a href="/o/r/-/merge_requests/99">not a row</a>`;
+    expect(renderedIids()).toEqual([12, 7]);
+  });
+
+  it('is order-independent and notices updates and new arrivals', () => {
+    const a = renderedListFingerprint(
+      [
+        { id: 1, iid: 2, state: 'opened', updated_at: 't1' },
+        { id: 2, iid: 1, state: 'opened', updated_at: 't1' },
+      ],
+      { id: 50 },
+    );
+    const same = renderedListFingerprint(
+      [
+        { id: 2, iid: 1, state: 'opened', updated_at: 't1' },
+        { id: 1, iid: 2, state: 'opened', updated_at: 't1' },
+      ],
+      { id: 50 },
+    );
+    expect(diffFingerprints(a, same)).toEqual([]);
+    const merged = renderedListFingerprint(
+      [
+        { id: 1, iid: 2, state: 'merged', updated_at: 't2' },
+        { id: 2, iid: 1, state: 'opened', updated_at: 't1' },
+      ],
+      { id: 51 },
+    );
+    expect(diffFingerprints(a, merged).map(describeChange)).toEqual([
+      'Items on this page were updated',
+      'New items',
+    ]);
+  });
+});
+
 describe('fetcherFor', () => {
   const api = (responses: Record<string, unknown>): GitLabApi => ({
     get: vi.fn(async (path: string) => {
@@ -88,6 +129,20 @@ describe('fetcherFor', () => {
       approvals: '3,9',
       sha: 'abc',
     });
+  });
+
+  it('fingerprints a project list by its rendered rows', async () => {
+    document.body.innerHTML =
+      '<a data-testid="issuable-title-link" href="/o/r/-/merge_requests/5">x</a>';
+    const a = api({
+      'projects/o%2Fr/merge_requests?state=all': [
+        { id: 1, iid: 5, state: 'opened', updated_at: 't' },
+      ],
+      'projects/o%2Fr/merge_requests?': [{ id: 9 }],
+    });
+    const f = await fetcherFor(page('/o/r/-/merge_requests'), a)!(new AbortController().signal);
+    expect(f.fields).toEqual({ shown: '5:opened:t', newest: 9 });
+    expect(vi.mocked(a.get).mock.calls[0]![0]).toContain('iids%5B%5D=5');
   });
 
   it('has no fetcher for code pages', () => {

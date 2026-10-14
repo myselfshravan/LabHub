@@ -6,7 +6,9 @@
  * flips through `checking`/`unchecked`, which would make every page look stale.
  */
 import type { GitLabApi } from '@/core/api';
+import { waitFor } from '@/core/dom';
 import type { PageContext } from '@/core/page';
+import { SEL } from '@/core/selectors';
 
 export type FieldValue = string | number | boolean | null;
 
@@ -34,6 +36,8 @@ const LABELS: Record<string, string> = {
   conflicts: 'Conflicts',
   status: 'Status',
   items: 'List',
+  shown: 'Items on this page',
+  newest: 'New items',
   updated: 'Activity',
 };
 
@@ -60,6 +64,10 @@ export function describeChange(c: Change): string {
       return 'New commits pushed';
     case 'pipelineId':
       return 'New pipeline started';
+    case 'shown':
+      return 'Items on this page were updated';
+    case 'newest':
+      return 'New items';
     case 'items':
     case 'updated':
       return 'New activity';
@@ -105,6 +113,8 @@ interface ApiJob {
 }
 interface ListItem {
   id: number;
+  iid?: number;
+  state?: string;
   updated_at?: string;
   status?: string;
 }
@@ -118,6 +128,36 @@ export function listFingerprint(items: ListItem[]): Fingerprint {
     fields: {
       items: items.map((i) => (i.status ? `${i.id}:${i.status}` : i.id)).join(','),
       updated: latest || null,
+    },
+  };
+}
+
+/** iids of the rows a MR/issue list currently renders, in page order. */
+export function renderedIids(doc: Document = document): number[] {
+  const iids: number[] = [];
+  for (const a of doc.querySelectorAll<HTMLAnchorElement>(SEL.listItemLink)) {
+    const m = /\/(?:merge_requests|issues|work_items)\/(\d+)/.exec(a.getAttribute('href') ?? '');
+    if (m) iids.push(Number(m[1]));
+  }
+  return iids;
+}
+
+/**
+ * Project list fingerprint that matches what the user sees regardless of sort order:
+ * the rendered rows' current state, plus the newest item matching the page's filters
+ * (so new arrivals are noticed too).
+ */
+export function renderedListFingerprint(
+  rows: ListItem[],
+  newest: ListItem | undefined,
+): Fingerprint {
+  return {
+    fields: {
+      shown: rows
+        .map((r) => `${r.iid}:${r.state ?? ''}:${r.updated_at ?? ''}`)
+        .sort()
+        .join(','),
+      newest: newest?.id ?? null,
     },
   };
 }
@@ -213,10 +253,32 @@ export function fetcherFor(page: PageContext, api: GitLabApi): FingerprintFetche
           );
       }
       if (!base) return;
-      return async (signal) =>
-        listFingerprint(
-          await api.get<ListItem[]>(`${base}/${res}?${listQuery(page.search)}`, { signal }),
-        );
+      if (!proj) {
+        // Group lists: rows span projects, so watch the filtered list itself.
+        return async (signal) =>
+          listFingerprint(
+            await api.get<ListItem[]>(`${base}/${res}?${listQuery(page.search)}`, { signal }),
+          );
+      }
+      return async (signal) => {
+        // The list renders client-side; wait for rows (an empty list just never gets any).
+        const iids =
+          (await waitFor(
+            () => {
+              const ids = renderedIids();
+              return ids.length > 0 && ids;
+            },
+            { signal },
+          )) ?? [];
+        const rowsQuery = new URLSearchParams({ state: 'all', per_page: '100' });
+        for (const iid of iids.slice(0, 100)) rowsQuery.append('iids[]', String(iid));
+        const newestQuery = listQuery(page.search, { order_by: 'created_at', per_page: '1' });
+        const [rows, newest] = await Promise.all([
+          iids.length ? api.get<ListItem[]>(`${proj}/${res}?${rowsQuery}`, { signal }) : [],
+          api.get<ListItem[]>(`${proj}/${res}?${newestQuery}`, { signal }),
+        ]);
+        return renderedListFingerprint(rows, newest[0]);
+      };
     }
     case 'pipeline-list':
       if (!proj) return;

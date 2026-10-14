@@ -6,4 +6,6 @@
 export const SEL = {
   /** Top bar "Search or go to…" button (opens GitLab's command palette). */
   searchButton: '[data-testid="super-topbar-search-button"], #super-sidebar-search',
+  /** Title link of each row in MR/issue/work-item lists. */
+  listItemLink: '[data-testid="issuable-title-link"]',
 } as const;
