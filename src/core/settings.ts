@@ -25,6 +25,13 @@ export interface FreshnessSettings {
   genericReloadAfterSec: number;
   /** Prefix the tab title with the MR/pipeline CI status. */
   titleStatus: boolean;
+  /** Desktop notification when CI finishes / an MR is merged or approved while you're away. */
+  notify: boolean;
+  /**
+   * A visible tab with no mouse/keyboard activity this long counts as "away": polling pauses,
+   * and your next interaction is treated like returning to the tab. 0 = off.
+   */
+  idleAfterSec: number;
 }
 
 export interface Settings {
@@ -48,6 +55,8 @@ export const DEFAULT_SETTINGS: Settings = {
     mode: 'auto',
     genericReloadAfterSec: 300,
     titleStatus: true,
+    notify: true,
+    idleAfterSec: 120,
   },
   debug: false,
 };

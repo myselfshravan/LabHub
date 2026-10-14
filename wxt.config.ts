@@ -11,7 +11,8 @@ export default defineConfig({
     description:
       'Keeps GitLab pages fresh (no more stale MR/pipeline status) and adds GitHub-like UX.',
     // `scripting` + optional hosts let users enable self-hosted GitLab instances at runtime.
-    permissions: ['storage', 'scripting', 'activeTab'],
+    // `notifications`: CI finished / MR merged while you're on another tab.
+    permissions: ['storage', 'scripting', 'activeTab', 'notifications'],
     optional_host_permissions: ['https://*/*', 'http://*/*'],
     action: { default_title: 'Better GitLab' },
   },

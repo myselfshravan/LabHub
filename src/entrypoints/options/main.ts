@@ -52,6 +52,12 @@ function freshnessCard(s: Settings) {
     numberRow('Poll interval (s)', '', f.pollIntervalSec, (v) =>
       set({ pollIntervalSec: Math.max(5, v) }),
     ),
+    numberRow(
+      'Idle after (s)',
+      'No mouse/keyboard on a visible tab this long pauses polling; your next move counts as returning. 0 = off.',
+      f.idleAfterSec,
+      (v) => set({ idleAfterSec: v }),
+    ),
     h(
       'label',
       { class: 'row' },
@@ -86,6 +92,12 @@ function freshnessCard(s: Settings) {
       'e.g. ✅ / ❌ / 🔄 before MR and pipeline titles.',
       f.titleStatus,
       (v) => set({ titleStatus: v }),
+    ),
+    switchRow(
+      'Desktop notifications',
+      'When a pipeline finishes, or an MR is merged/closed/approved, while you are on another tab.',
+      f.notify,
+      (v) => set({ notify: v }),
     ),
   );
 }

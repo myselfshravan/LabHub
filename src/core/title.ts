@@ -52,4 +52,8 @@ export const tabTitle = {
     rewrite = fn;
     apply();
   },
+  /** The current title without any prefix (e.g. for notification text). */
+  text(): string {
+    return applied !== undefined ? applied.slice(prefix.length) : document.title;
+  },
 };
