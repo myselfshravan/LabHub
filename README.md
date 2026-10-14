@@ -23,6 +23,17 @@ Fingerprinted pages: MR, issue, pipeline, job, MR/issue lists (project, group, d
 pipeline list, To-Do list. Other pages (code, settings, …) reload on return after 5 minutes away.
 MR and pipeline tabs also get a CI status emoji in the tab title (✅ ❌ 🔄 ⏳).
 
+### GitHub look (`github-theme`)
+GitHub Primer colors (light + dark) and system fonts, applied by retargeting GitLab's own
+`--gl-*` design tokens rather than restyling components, so it survives GitLab UI updates.
+
+### ⌘K / Ctrl+K (`command-palette`)
+Opens GitLab's "Search or go to…" palette (supports `>` commands, `@` users, `:` projects).
+Ignored inside editors, where GitLab uses ⌘K to insert a link.
+
+GitLab already has the other GitHub shortcuts natively, so they aren't duplicated: `t` file
+finder, `y` permalink, `?` shortcut list, `[`/`]` previous/next file and the **Viewed** checkbox in MR diffs.
+
 Every feature can be toggled from the toolbar popup, and there's a master on/off switch.
 Settings → intervals, auto-reload vs banner-only, self-hosted instances, logs.
 

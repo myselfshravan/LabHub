@@ -32,7 +32,10 @@ function png(size, pixel) {
       for (let sy = 0; sy < ss; sy++)
         for (let sx = 0; sx < ss; sx++) {
           const [r, g, b, a] = pixel((x + (sx + 0.5) / ss) / size, (y + (sy + 0.5) / ss) / size);
-          acc[0] += r * a; acc[1] += g * a; acc[2] += b * a; acc[3] += a;
+          acc[0] += r * a;
+          acc[1] += g * a;
+          acc[2] += b * a;
+          acc[3] += a;
         }
       const a = acc[3] / (ss * ss);
       const o = 1 + x * 4;
@@ -62,15 +65,18 @@ function pixel(u, v) {
   const dy = Math.max(Math.abs(v - 0.5) - (0.5 - r), 0);
   if (dx * dx + dy * dy > r * r) return [0, 0, 0, 0];
   const bg = [252 - 60 * v, 109 - 20 * v, 38 + 30 * v]; // GitLab orange, slightly graded
-  const x = u - 0.5, y = v - 0.5;
+  const x = u - 0.5,
+    y = v - 0.5;
   const d = Math.hypot(x, y);
   const ang = Math.atan2(y, x); // -π..π, 0 = right
   // Arc of ~300° leaving a gap at the top-right, plus a triangular arrow head at the gap.
   const onRing = Math.abs(d - 0.24) < 0.065 && !(ang < -0.35 && ang > -1.35);
-  const hx = 0.5 + 0.24 * Math.cos(-0.35), hy = 0.5 + 0.24 * Math.sin(-0.35);
+  const hx = 0.5 + 0.24 * Math.cos(-0.35),
+    hy = 0.5 + 0.24 * Math.sin(-0.35);
   const inHead = (() => {
     // Triangle pointing "up-left" along the arc tangent at the gap.
-    const px = u - hx, py = v - hy;
+    const px = u - hx,
+      py = v - hy;
     const t = [Math.sin(-0.35), -Math.cos(-0.35)]; // tangent direction (counter-clockwise)
     const n = [Math.cos(-0.35), Math.sin(-0.35)];
     const along = px * t[0] + py * t[1];

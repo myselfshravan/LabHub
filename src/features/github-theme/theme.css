@@ -1,0 +1,68 @@
+/*
+ * GitHub (Primer) look for GitLab, done by retargeting GitLab's own semantic design tokens
+ * (--gl-*) instead of restyling components — survives GitLab UI changes far better.
+ * `html:root` / `html.gl-dark:root` out-rank GitLab's `:root` / `.gl-dark` token blocks.
+ */
+html:root {
+  --bgl-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+  --bgl-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --gl-font-family-regular: var(--bgl-sans);
+  --font-family-sans-serif: var(--bgl-sans);
+  --gl-font-family-monospace: var(--bgl-mono);
+  --font-family-monospace: var(--bgl-mono);
+
+  /* Primer light */
+  --gl-background-color-default: #ffffff;
+  --gl-background-color-subtle: #f6f8fa;
+  --gl-background-color-section: #f6f8fa;
+  --gl-background-color-strong: #eff2f5;
+  --gl-background-color-overlap: #ffffff;
+  --gl-border-color-default: #d1d9e0;
+  --gl-border-color-subtle: #d1d9e0b3;
+  --gl-border-color-strong: #818b98;
+  --gl-text-color-default: #1f2328;
+  --gl-text-color-subtle: #59636e;
+  --gl-text-color-strong: #1f2328;
+  --gl-text-color-heading: #1f2328;
+  --gl-text-color-link: #0969da;
+  --gl-focus-ring-outer-color: #0969da;
+  /* Page chrome around the content panels (body, sidebar): Primer "canvas inset". */
+  --gl-application-chrome-background-color: #f6f8fa;
+}
+
+html.gl-dark:root {
+  /* Primer dark */
+  --gl-background-color-default: #0d1117;
+  --gl-background-color-subtle: #151b23;
+  --gl-background-color-section: #151b23;
+  --gl-background-color-strong: #212830;
+  --gl-background-color-overlap: #151b23;
+  --gl-border-color-default: #3d444d;
+  --gl-border-color-subtle: #3d444db3;
+  --gl-border-color-strong: #656c76;
+  --gl-text-color-default: #f0f6fc;
+  --gl-text-color-subtle: #9198a1;
+  --gl-text-color-strong: #f0f6fc;
+  --gl-text-color-heading: #f0f6fc;
+  --gl-text-color-link: #4493f8;
+  --gl-focus-ring-outer-color: #1f6feb;
+  --gl-focus-ring-inner-color: #0d1117;
+  --gl-application-chrome-background-color: #010409;
+}
+
+/* Some GitLab rules set fonts directly instead of through tokens. */
+html:root body {
+  font-family: var(--bgl-sans);
+  -webkit-font-smoothing: antialiased;
+}
+html:root code,
+html:root pre,
+html:root kbd,
+html:root .code,
+html:root .diff-content {
+  font-family: var(--bgl-mono);
+}
