@@ -2,6 +2,7 @@
 
 const ICONS: Record<string, string> = {
   success: '✅',
+  'success-with-warnings': '⚠️',
   failed: '❌',
   running: '🔄',
   pending: '⏳',

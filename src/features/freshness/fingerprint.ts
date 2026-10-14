@@ -107,8 +107,9 @@ interface ApiIssue {
   state: string;
   user_notes_count: number;
 }
-interface ApiJob {
-  status: string;
+/** `/-/jobs/:id.json` (page JSON, not REST): status is an object there. */
+interface PageJob {
+  status: { group: string };
   finished_at: string | null;
 }
 interface ListItem {
@@ -234,10 +235,13 @@ export function fetcherFor(page: PageContext, api: GitLabApi): FingerprintFetche
         return { fields: { status: p.status, updated: p.updated_at }, ciStatus: p.status };
       };
     case 'job':
-      if (!proj || !page.id) return;
+      if (!scope || scope.type !== 'project' || !page.id) return;
       return async (signal) => {
-        const j = await api.get<ApiJob>(`${proj}/jobs/${page.id}`, { signal });
-        return { fields: { status: j.status, updated: j.finished_at }, ciStatus: j.status };
+        const j = await api.getPageJson<PageJob>(`${scope.fullPath}/-/jobs/${page.id}.json`, {
+          signal,
+        });
+        const status = j.status.group;
+        return { fields: { status, updated: j.finished_at }, ciStatus: status };
       };
     case 'mr-list':
     case 'issue-list': {

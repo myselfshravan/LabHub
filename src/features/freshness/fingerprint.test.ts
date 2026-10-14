@@ -102,6 +102,10 @@ describe('fetcherFor', () => {
       if (!key) throw new Error(`unexpected ${path}`);
       return responses[key];
     }) as GitLabApi['get'],
+    getPageJson: vi.fn(async (path: string) => {
+      if (path in responses) return responses[path];
+      throw new Error(`unexpected ${path}`);
+    }) as GitLabApi['getPageJson'],
     project: (p) => `projects/${encodeURIComponent(p)}`,
     group: (p) => `groups/${encodeURIComponent(p)}`,
   });
@@ -143,6 +147,12 @@ describe('fetcherFor', () => {
     const f = await fetcherFor(page('/o/r/-/merge_requests'), a)!(new AbortController().signal);
     expect(f.fields).toEqual({ shown: '5:opened:t', newest: 9 });
     expect(vi.mocked(a.get).mock.calls[0]![0]).toContain('iids%5B%5D=5');
+  });
+
+  it('fingerprints jobs from the page JSON (works signed out)', async () => {
+    const a = api({ 'o/r/-/jobs/3.json': { status: { group: 'running' }, finished_at: null } });
+    const f = await fetcherFor(page('/o/r/-/jobs/3'), a)!(new AbortController().signal);
+    expect(f).toEqual({ fields: { status: 'running', updated: null }, ciStatus: 'running' });
   });
 
   it('has no fetcher for code pages', () => {

@@ -25,7 +25,10 @@ export interface Scope {
 
 export interface PageContext {
   origin: string;
-  /** href without the hash: two contexts with the same key are the same page. */
+  /**
+   * Identity of the loaded document: two contexts with the same key are the same page.
+   * href without the hash, except detail pages, where sub-tabs share the base key.
+   */
   key: string;
   pathname: string;
   search: URLSearchParams;
@@ -82,7 +85,12 @@ export function parsePage(url: URL, body: Pick<HTMLElement, 'dataset'> | null): 
       if (!m) continue;
       // Group pages only have lists; a group "MR 12" URL doesn't exist.
       if (isGroup && !kind.endsWith('-list')) break;
-      return { ...base, kind, scope, ...(m[1] ? { id: Number(m[1]) } : {}) };
+      if (!m[1]) return { ...base, kind, scope };
+      // In-page sub-tabs (MR Changes/Commits, pipeline Jobs/Tests, ...) are pushState
+      // navigations of the same document: key them as one page so features keep their state.
+      const resource = rest.slice(0, rest.indexOf('/'));
+      const key = `${url.origin}/${pathname.slice(1, sep)}/-/${resource}/${m[1]}`;
+      return { ...base, key, kind, scope, id: Number(m[1]) };
     }
     return { ...base, kind: 'other', scope };
   }

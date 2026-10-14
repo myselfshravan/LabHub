@@ -52,8 +52,19 @@ describe('parsePage', () => {
     });
   });
 
-  it('page key ignores hash but keeps query', () => {
+  it('detail-page sub-tabs share one key', () => {
+    expect(parse('/o/r/-/merge_requests/1/diffs').key).toBe(parse('/o/r/-/merge_requests/1').key);
+    expect(parse('/o/r/-/pipelines/9/builds').key).toBe('https://gitlab.com/o/r/-/pipelines/9');
+    expect(parse('/o/r/-/merge_requests/1').key).not.toBe(parse('/o/r/-/merge_requests/2').key);
+  });
+
+  it('list page key ignores hash but keeps query', () => {
+    const l = parsePage(new URL('https://gitlab.com/o/r/-/merge_requests?state=merged#x'), body());
+    expect(l.key).toBe('https://gitlab.com/o/r/-/merge_requests?state=merged');
+  });
+
+  it('detail page key ignores hash', () => {
     const a = parsePage(new URL('https://gitlab.com/o/r/-/merge_requests/1?x=1#note_5'), body());
-    expect(a.key).toBe('https://gitlab.com/o/r/-/merge_requests/1?x=1');
+    expect(a.key).toBe('https://gitlab.com/o/r/-/merge_requests/1');
   });
 });
