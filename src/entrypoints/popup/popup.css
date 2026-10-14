@@ -1,0 +1,25 @@
+body {
+  width: 340px;
+  padding: 12px;
+}
+#app > * + * {
+  margin-top: 12px;
+}
+header.row {
+  padding: 0;
+}
+footer.row {
+  border-top: 0;
+  padding: 0;
+}
+.card .row p {
+  font-size: 12px;
+}
+.disabled {
+  opacity: 0.5;
+}
+.site {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

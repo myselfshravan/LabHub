@@ -1,0 +1,96 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { GitLabApi } from '@/core/api';
+import { parsePage } from '@/core/page';
+import {
+  describeChange,
+  diffFingerprints,
+  fetcherFor,
+  listFingerprint,
+  listQuery,
+} from './fingerprint';
+
+const fp = (fields: Record<string, string | number | null>) => ({ fields });
+
+describe('diffFingerprints', () => {
+  it('reports specific changes and hides the generic timestamp when others exist', () => {
+    const changes = diffFingerprints(
+      fp({ pipeline: 'running', notes: 1, updated: 'a' }),
+      fp({ pipeline: 'success', notes: 3, updated: 'b' }),
+    );
+    expect(changes.map((c) => c.field)).toEqual(['pipeline', 'notes']);
+    expect(changes.map(describeChange)).toEqual(['Pipeline: running → success', '2 new comments']);
+  });
+
+  it('falls back to the timestamp when it is the only difference', () => {
+    const changes = diffFingerprints(fp({ updated: 'a' }), fp({ updated: 'b' }));
+    expect(changes.map(describeChange)).toEqual(['New activity']);
+  });
+
+  it('is empty for identical fingerprints', () => {
+    expect(diffFingerprints(fp({ a: 1 }), fp({ a: 1 }))).toEqual([]);
+  });
+});
+
+describe('list helpers', () => {
+  it('fingerprints ids, statuses and latest update', () => {
+    expect(
+      listFingerprint([
+        { id: 2, status: 'running', updated_at: '2026-01-02' },
+        { id: 1, status: 'success', updated_at: '2026-01-03' },
+      ]).fields,
+    ).toEqual({ items: '2:running,1:success', updated: '2026-01-03' });
+  });
+
+  it('maps GitLab UI filters to API params', () => {
+    const q = new URLSearchParams(
+      listQuery(
+        new URLSearchParams('state=merged&author_username=me&label_name[]=a&label_name[]=b&sort=x'),
+      ),
+    );
+    expect(q.get('state')).toBe('merged');
+    expect(q.get('author_username')).toBe('me');
+    expect(q.get('labels')).toBe('a,b');
+    expect(q.get('order_by')).toBe('updated_at');
+  });
+});
+
+describe('fetcherFor', () => {
+  const api = (responses: Record<string, unknown>): GitLabApi => ({
+    get: vi.fn(async (path: string) => {
+      const key = Object.keys(responses).find((k) => path.startsWith(k));
+      if (!key) throw new Error(`unexpected ${path}`);
+      return responses[key];
+    }) as GitLabApi['get'],
+    project: (p) => `projects/${encodeURIComponent(p)}`,
+    group: (p) => `groups/${encodeURIComponent(p)}`,
+  });
+  const page = (path: string) => parsePage(new URL(`https://gitlab.com${path}`), null);
+
+  it('builds an MR fingerprint including pipeline and approvals', async () => {
+    const a = api({
+      'projects/o%2Fr/merge_requests/5/approvals': {
+        approved_by: [{ user: { id: 9 } }, { user: { id: 3 } }],
+      },
+      'projects/o%2Fr/merge_requests/5': {
+        state: 'opened',
+        sha: 'abc',
+        user_notes_count: 2,
+        has_conflicts: false,
+        updated_at: 't',
+        head_pipeline: { id: 77, status: 'running', updated_at: 't' },
+      },
+    });
+    const f = await fetcherFor(page('/o/r/-/merge_requests/5'), a)!(new AbortController().signal);
+    expect(f.ciStatus).toBe('running');
+    expect(f.fields).toMatchObject({
+      pipeline: 'running',
+      pipelineId: 77,
+      approvals: '3,9',
+      sha: 'abc',
+    });
+  });
+
+  it('has no fetcher for code pages', () => {
+    expect(fetcherFor(page('/o/r/-/blob/main/x'), api({}))).toBeUndefined();
+  });
+});
