@@ -38,6 +38,18 @@ minute while the tab is in the background, so you can watch a pipeline from anot
 GitHub Primer colors (light + dark) and system fonts, applied by retargeting GitLab's own
 `--gl-*` design tokens rather than restyling components, so it survives GitLab UI updates.
 
+### Short tab titles (`tab-titles`)
+Tabs lead with the repo name instead of burying it at the end:
+
+| GitLab's title | Better GitLab |
+| --- | --- |
+| Merge requests · Acme / experiments / agent-os-ui · GitLab | agent-os-ui · MRs |
+| Fix login (!12) · Merge requests · Acme / … / agent-os-ui · GitLab | agent-os-ui !12 Fix login |
+| Pipeline #99 · Acme / … / agent-os-ui · GitLab | agent-os-ui · Pipeline #99 |
+| README.md · main · Acme / … / agent-os-ui · GitLab | agent-os-ui · README.md |
+
+Combined with freshness it reads e.g. `✅ agent-os-ui !12 Fix login`.
+
 ### ⌘K / Ctrl+K (`command-palette`)
 Opens GitLab's "Search or go to…" palette (supports `>` commands, `@` users, `:` projects).
 Ignored inside editors, where GitLab uses ⌘K to insert a link.
