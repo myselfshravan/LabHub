@@ -11,9 +11,14 @@
  *
  * Pages without a fingerprint (code, settings, ...) simply reload when returned to after
  * genericReloadAfterSec, under the same safety rules.
+ *
+ * Pipeline and job pages are live already (GitLab polls them while visible), so there we only
+ * keep the tab-title CI status current — including while the tab is hidden, which is when the
+ * title is actually useful.
  */
 import { ApiError } from '@/core/api';
 import { defineFeature } from '@/core/feature';
+import type { PageKind } from '@/core/page';
 import { createBanner } from './banner';
 import {
   describeChange,
@@ -26,10 +31,19 @@ import { unsafeReason } from './safety';
 import { restoreScroll, saveScroll } from './scroll';
 import { createTitleStatus } from './title';
 
-type Trigger = 'init' | 'focus' | 'poll' | 'online' | 'bfcache';
+type Trigger = 'init' | 'focus' | 'poll' | 'online' | 'bfcache' | 'title';
 
 /** Triggers where the user is (re)arriving, so a reload isn't disruptive. */
 const ARRIVAL: ReadonlySet<Trigger> = new Set(['focus', 'online', 'bfcache']);
+
+/** Pages GitLab keeps current by itself while visible: no banner/reload, title status only. */
+const LIVE_PAGES: ReadonlySet<PageKind> = new Set(['pipeline', 'pipeline-list', 'job']);
+
+/** Pages with a CI status for the tab title. */
+const CI_PAGES: ReadonlySet<PageKind> = new Set(['mr', 'pipeline', 'job']);
+
+/** Title-only refresh rate for hidden tabs (one small request per tab). */
+const HIDDEN_TITLE_INTERVAL_MS = 60_000;
 
 export default defineFeature({
   id: 'freshness',
@@ -42,6 +56,7 @@ export default defineFeature({
   init({ page, settings, api, log, signal, onCleanup }) {
     const cfg = settings.freshness;
     const fetchFingerprint = fetcherFor(page, api);
+    const live = LIVE_PAGES.has(page.kind);
     const title = createTitleStatus();
     onCleanup(() => title.destroy());
 
@@ -89,6 +104,7 @@ export default defineFeature({
       if (signal.aborted || inFlight) return;
 
       if (fingerprintDisabled) {
+        if (live) return;
         // No way to tell what changed: time-based reload on arrival only.
         const limit = cfg.genericReloadAfterSec * 1000;
         if (ARRIVAL.has(trigger) && limit > 0 && awayMs >= limit) {
@@ -103,6 +119,7 @@ export default defineFeature({
         const fp = await fetchFingerprint!(signal);
         if (signal.aborted) return;
         if (cfg.titleStatus && fp.ciStatus !== undefined) title.set(fp.ciStatus);
+        if (live || trigger === 'title') return;
         if (!baseline) {
           baseline = fp;
           log.debug('baseline', fp.fields);
@@ -157,10 +174,17 @@ export default defineFeature({
       opts,
     );
 
-    if (cfg.poll && cfg.pollIntervalSec > 0 && !fingerprintDisabled) {
+    if (cfg.poll && cfg.pollIntervalSec > 0 && !fingerprintDisabled && !live) {
       const id = setInterval(() => {
         if (document.visibilityState === 'visible') void check('poll');
       }, cfg.pollIntervalSec * 1000);
+      onCleanup(() => clearInterval(id));
+    }
+
+    if (cfg.titleStatus && CI_PAGES.has(page.kind) && !fingerprintDisabled) {
+      const id = setInterval(() => {
+        if (document.visibilityState === 'hidden') void check('title');
+      }, HIDDEN_TITLE_INTERVAL_MS);
       onCleanup(() => clearInterval(id));
     }
 

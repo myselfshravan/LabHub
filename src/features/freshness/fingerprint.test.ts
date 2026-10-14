@@ -6,6 +6,7 @@ import {
   diffFingerprints,
   fetcherFor,
   listFingerprint,
+  listOrder,
   listQuery,
   renderedIids,
   renderedListFingerprint,
@@ -95,6 +96,39 @@ describe('rendered list', () => {
   });
 });
 
+describe('listOrder', () => {
+  const doc = (label: string, dir: string) => {
+    document.body.innerHTML = `<div class="sort-dropdown-container">${label}</div>
+      <button aria-label="Sort direction: ${dir}"></button>`;
+    return document;
+  };
+
+  it.each([
+    ['created_date', 'created_at', 'desc'],
+    ['created_asc', 'created_at', 'asc'],
+    ['updated_desc', 'updated_at', 'desc'],
+    ['merged_at_asc', 'merged_at', 'asc'],
+    ['popularity', 'popularity', 'desc'],
+  ])('URL sort=%s → %s %s', (sort, order_by, dir) => {
+    expect(listOrder(new URLSearchParams({ sort }), doc('Title', 'Ascending'))).toEqual({
+      order_by,
+      sort: dir,
+    });
+  });
+
+  it('falls back to the sort control on the page', () => {
+    expect(listOrder(new URLSearchParams(), doc(' Updated date ', 'Ascending'))).toEqual({
+      order_by: 'updated_at',
+      sort: 'asc',
+    });
+  });
+
+  it('is undefined for sorts the API cannot reproduce', () => {
+    expect(listOrder(new URLSearchParams({ sort: 'closed_at_desc' }))).toBeUndefined();
+    expect(listOrder(new URLSearchParams(), doc('Blocking', 'Descending'))).toBeUndefined();
+  });
+});
+
 describe('fetcherFor', () => {
   const api = (responses: Record<string, unknown>): GitLabApi => ({
     get: vi.fn(async (path: string) => {
@@ -145,8 +179,21 @@ describe('fetcherFor', () => {
       'projects/o%2Fr/merge_requests?': [{ id: 9 }],
     });
     const f = await fetcherFor(page('/o/r/-/merge_requests'), a)!(new AbortController().signal);
-    expect(f.fields).toEqual({ shown: '5:opened:t', newest: 9 });
+    expect(f.fields).toEqual({ shown: '1:opened:t', newest: 9 });
     expect(vi.mocked(a.get).mock.calls[0]![0]).toContain('iids%5B%5D=5');
+  });
+
+  it('fingerprints a group list in the page sort order', async () => {
+    document.body.innerHTML = `<div class="sort-dropdown-container">Created date</div>
+      <button aria-label="Sort direction: Descending"></button>`;
+    const a = api({ 'groups/acme/merge_requests?': [{ id: 3, state: 'opened', updated_at: 't' }] });
+    const f = await fetcherFor(page('/groups/acme/-/merge_requests'), a)!(
+      new AbortController().signal,
+    );
+    expect(f.fields).toEqual({ shown: '3:opened:t', newest: null });
+    const url = vi.mocked(a.get).mock.calls[0]![0];
+    expect(url).toContain('order_by=created_at');
+    expect(url).toContain('sort=desc');
   });
 
   it('fingerprints jobs from the page JSON (works signed out)', async () => {

@@ -8,4 +8,9 @@ export const SEL = {
   searchButton: '[data-testid="super-topbar-search-button"], #super-sidebar-search',
   /** Title link of each row in MR/issue/work-item lists. */
   listItemLink: '[data-testid="issuable-title-link"]',
+  /** List sort control: label of the active sort field, and the direction toggle. */
+  listSortLabel: '.sort-dropdown-container',
+  listSortDirection: 'button[aria-label^="Sort direction"]',
+  /** GitLab's paneled layout scrolls this element instead of the window. */
+  scrollPanel: '.js-static-panel-inner',
 } as const;

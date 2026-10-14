@@ -19,9 +19,20 @@ approvals or list you're looking at may be out of date. Better GitLab takes a ch
 "Nothing would be lost" means: no typed text in a comment box or field, no focused input,
 no open editor/dialog, no text selection. Scroll position is restored after a reload.
 
-Fingerprinted pages: MR, issue, pipeline, job, MR/issue lists (project, group, dashboard),
-pipeline list, To-Do list. Other pages (code, settings, …) reload on return after 5 minutes away.
-MR and pipeline tabs also get a CI status emoji in the tab title (✅ ❌ 🔄 ⏳).
+What's watched:
+
+| Page | Change detected |
+| --- | --- |
+| MR | new commits, pipeline status / new pipeline, comments, approvals, state, draft, conflicts |
+| Issue / work item | state, comments, any update |
+| Project MR / issue list | any row on screen updated, or a new item matching your filters |
+| Group / dashboard list | the same rows in the page's own sort order |
+| To-Do list | pending to-dos |
+| Pipeline, job, pipeline list | nothing to do: GitLab live-updates these itself; only the tab title is kept current |
+| Anything else (code, settings…) | no detection; reloads on return after 5 minutes away |
+
+MR, pipeline and job tabs show the CI status in the tab title (✅ ❌ 🔄 ⏳ ⚠️), refreshed once a
+minute while the tab is in the background, so you can watch a pipeline from another tab.
 
 ### GitHub look (`github-theme`)
 GitHub Primer colors (light + dark) and system fonts, applied by retargeting GitLab's own
@@ -47,7 +58,8 @@ npm run build          # → .output/chrome-mv3
 Chrome → `chrome://extensions` → enable **Developer mode** → **Load unpacked** →
 select `.output/chrome-mv3`. After a rebuild, hit the reload icon on the extension card.
 
-For development, `npm run dev` launches a Chrome profile with the extension and hot reload.
+For development, `npm run dev` builds `.output/chrome-mv3-dev`; load that folder instead and it
+hot-reloads on every change (keep `npm run dev` running). Don't load both at once.
 
 ### Self-hosted GitLab
 Open your instance, click the extension icon → **Enable on <host>** (or add it in Settings).

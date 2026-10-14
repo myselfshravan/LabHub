@@ -155,12 +155,54 @@ export function renderedListFingerprint(
   return {
     fields: {
       shown: rows
-        .map((r) => `${r.iid}:${r.state ?? ''}:${r.updated_at ?? ''}`)
+        // `id` is globally unique (iids repeat across projects in group lists).
+        .map((r) => `${r.id}:${r.state ?? ''}:${r.updated_at ?? ''}`)
         .sort()
         .join(','),
       newest: newest?.id ?? null,
     },
   };
+}
+
+export interface ListOrder {
+  order_by: string;
+  sort: 'asc' | 'desc';
+}
+
+/** GitLab UI sort names (URL `sort=` prefix or dropdown label) → API `order_by`. */
+const ORDER_BY: Array<[RegExp, RegExp, string]> = [
+  [/^created/, /^created/i, 'created_at'],
+  [/^updated/, /^updated/i, 'updated_at'],
+  [/^merged_at/, /^merged/i, 'merged_at'],
+  [/^title/, /^title/i, 'title'],
+  [/^label_priority/, /^label priority/i, 'label_priority'],
+  [/^priority/, /^priority/i, 'priority'],
+  [/^milestone/, /^milestone/i, 'milestone_due'],
+  [/^due_date/, /^due date/i, 'due_date'],
+  [/^popularity/, /^popularity/i, 'popularity'],
+];
+
+/**
+ * The sort order the list page is showing, so the API can be asked for the same rows.
+ * URL `sort=` wins; otherwise the sort control's label (the server-side default lives in user
+ * preferences, which we can't read). Undefined when the sort isn't one the API supports.
+ */
+export function listOrder(
+  search: URLSearchParams,
+  doc: Document = document,
+): ListOrder | undefined {
+  const param = search.get('sort');
+  if (param) {
+    const hit = ORDER_BY.find(([re]) => re.test(param));
+    if (!hit) return;
+    // `created_date` and bare `popularity`/`priority` mean descending in GitLab's UI.
+    return { order_by: hit[2], sort: /_asc$/.test(param) ? 'asc' : 'desc' };
+  }
+  const label = doc.querySelector(SEL.listSortLabel)?.textContent?.trim();
+  const hit = label ? ORDER_BY.find(([, re]) => re.test(label)) : undefined;
+  if (!hit) return;
+  const dir = doc.querySelector(SEL.listSortDirection)?.getAttribute('aria-label') ?? '';
+  return { order_by: hit[2], sort: /ascending/i.test(dir) ? 'asc' : 'desc' };
 }
 
 /** Maps GitLab's list-page URL filters to API query params so we watch what's actually shown. */
@@ -246,24 +288,25 @@ export function fetcherFor(page: PageContext, api: GitLabApi): FingerprintFetche
     case 'mr-list':
     case 'issue-list': {
       const res = page.kind === 'mr-list' ? 'merge_requests' : 'issues';
-      if (scope?.type === 'dashboard') {
+      if (scope?.type !== 'project') {
+        // Group/dashboard rows span projects and GitLab times out on iid lookups across big
+        // groups, so ask for the same filtered list in the same order the page shows.
+        const path = scope?.type === 'group' ? `${base}/${res}` : res;
         // The dashboard defaults to "assigned to me"; reviewer filters come through listQuery.
-        const extra: Record<string, string> = page.search.toString()
-          ? {}
-          : { scope: 'assigned_to_me' };
-        return async (signal) =>
-          listFingerprint(
-            await api.get<ListItem[]>(`${res}?${listQuery(page.search, extra)}`, { signal }),
+        const extra: Record<string, string> =
+          scope?.type === 'dashboard' && !page.search.toString() ? { scope: 'assigned_to_me' } : {};
+        return async (signal) => {
+          // The sort control renders client-side too.
+          const order = await waitFor(() => listOrder(page.search), { signal, timeoutMs: 5000 });
+          const rows = await api.get<ListItem[]>(
+            `${path}?${listQuery(page.search, { ...extra, ...(order ?? {}) })}`,
+            { signal },
           );
+          // Unknown sort: the window may not match the page; fall back to coarse activity.
+          return order ? renderedListFingerprint(rows, undefined) : listFingerprint(rows);
+        };
       }
-      if (!base) return;
-      if (!proj) {
-        // Group lists: rows span projects, so watch the filtered list itself.
-        return async (signal) =>
-          listFingerprint(
-            await api.get<ListItem[]>(`${base}/${res}?${listQuery(page.search)}`, { signal }),
-          );
-      }
+      if (!proj) return;
       return async (signal) => {
         // The list renders client-side; wait for rows (an empty list just never gets any).
         const iids =
@@ -284,10 +327,6 @@ export function fetcherFor(page: PageContext, api: GitLabApi): FingerprintFetche
         return renderedListFingerprint(rows, newest[0]);
       };
     }
-    case 'pipeline-list':
-      if (!proj) return;
-      return async (signal) =>
-        listFingerprint(await api.get<ListItem[]>(`${proj}/pipelines?per_page=20`, { signal }));
     case 'todos':
       return async (signal) =>
         listFingerprint(await api.get<ListItem[]>('todos?state=pending&per_page=50', { signal }));

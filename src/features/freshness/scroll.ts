@@ -1,15 +1,26 @@
 /**
  * Preserves scroll across our own reloads. The browser's native restoration often fails on
  * GitLab because content renders asynchronously, so we keep retrying until the page is tall
- * enough (or we give up).
+ * enough (or we give up). GitLab's paneled layout scrolls an inner panel, not the window.
  */
+import { SEL } from '@/core/selectors';
 
 const KEY = 'bgl:freshness:scroll';
 const MAX_AGE_MS = 30_000;
 
+/** The element that actually scrolls: GitLab's content panel when present, else the page. */
+export function scroller(doc: Document = document): Element {
+  const panel = doc.querySelector(SEL.scrollPanel);
+  if (panel && panel.scrollHeight > panel.clientHeight) return panel;
+  return doc.scrollingElement ?? doc.documentElement;
+}
+
 export function saveScroll(pageKey: string): void {
   try {
-    sessionStorage.setItem(KEY, JSON.stringify({ pageKey, y: window.scrollY, t: Date.now() }));
+    sessionStorage.setItem(
+      KEY,
+      JSON.stringify({ pageKey, y: scroller().scrollTop, t: Date.now() }),
+    );
   } catch {
     /* storage blocked */
   }
@@ -37,8 +48,9 @@ export function restoreScroll(pageKey: string, signal: AbortSignal): void {
   }
   const attempt = () => {
     if (signal.aborted || userScrolled) return;
-    const reachable = document.documentElement.scrollHeight - window.innerHeight >= y;
-    if (reachable) window.scrollTo({ top: y });
+    const el = scroller();
+    const reachable = el.scrollHeight - el.clientHeight >= y;
+    if (reachable) el.scrollTop = y;
     else if (Date.now() < deadline) setTimeout(attempt, 150);
   };
   attempt();
