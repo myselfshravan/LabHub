@@ -1,0 +1,15 @@
+name: Feature request
+description: Something on GitLab that should look or work like GitHub
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What should change
+      description: Ideally a GitLab screenshot next to the GitHub equivalent.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it matters

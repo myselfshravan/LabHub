@@ -58,7 +58,7 @@ async function render() {
     h(
       'header',
       { class: 'row' },
-      h('h1', {}, 'Better GitLab'),
+      h('h1', {}, 'LabHub'),
       h('input', {
         type: 'checkbox',
         class: 'switch',

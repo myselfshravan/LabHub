@@ -201,7 +201,7 @@ function logsCard(s: Settings) {
     });
     const a = h('a', {
       href: URL.createObjectURL(blob),
-      download: `better-gitlab-logs-${Date.now()}.json`,
+      download: `labhub-logs-${Date.now()}.json`,
     });
     a.click();
     URL.revokeObjectURL(a.href);
@@ -240,7 +240,7 @@ function logsCard(s: Settings) {
 async function render() {
   const s = await getSettings();
   app.replaceChildren(
-    h('h1', {}, 'Better GitLab'),
+    h('h1', {}, 'LabHub'),
     h(
       'section',
       { class: 'card' },

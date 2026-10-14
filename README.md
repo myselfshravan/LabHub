@@ -1,20 +1,45 @@
-# Better GitLab
+<p align="center">
+  <img src="public/icon/128.png" width="80" alt="LabHub icon">
+</p>
 
-A personal Chrome extension that fixes GitLab's biggest annoyance — **stale pages** — and,
-step by step, makes GitLab feel more like GitHub.
+<h1 align="center">LabHub</h1>
+
+<p align="center">
+  <b>GitLab that looks and feels like GitHub, and never shows you stale status.</b><br>
+  A Chrome extension for gitlab.com and self-hosted GitLab.
+</p>
+
+<p align="center">
+  <a href="https://github.com/myselfshravan/LabHub/actions/workflows/ci.yml"><img src="https://github.com/myselfshravan/LabHub/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/myselfshravan/LabHub/releases/latest"><img src="https://img.shields.io/github/v/release/myselfshravan/LabHub?display_name=tag" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/myselfshravan/LabHub" alt="MIT license"></a>
+</p>
 
 | MR list                                  | MR page                                  | Diff                               |
 | ---------------------------------------- | ---------------------------------------- | ---------------------------------- |
 | ![MR list](docs/screenshots/mr-list.jpg) | ![MR page](docs/screenshots/mr-page.jpg) | ![Diff](docs/screenshots/diff.jpg) |
 
-<sub>gitlab.com, dark mode, with the extension on.</sub>
+<sub>gitlab.com in dark mode with LabHub on.</sub>
+
+> [!NOTE]
+> **Built end to end in a single Claude Code session.** Every line of code, the tests, the
+> CI, the screenshots and this README came out of one conversation with Claude.
+
+## Install
+
+1. Download `labhub-<version>-chrome.zip` from the [latest release](https://github.com/myselfshravan/LabHub/releases/latest) and unzip it.
+2. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, pick the unzipped folder.
+3. Open any GitLab page. Use the toolbar icon to toggle features; there's a master on/off switch.
+
+Self-hosted GitLab: open your instance, click the LabHub icon, then **Enable on &lt;host&gt;**.
+Chrome asks for permission for that one origin only.
 
 ## What it does
 
 ### Keep pages fresh (`freshness`)
 
 GitLab renders most of a page once; come back to a tab later and the MR status, pipeline,
-approvals or list you're looking at may be out of date. Better GitLab takes a cheap API
+approvals or list you're looking at may be out of date. LabHub takes a cheap API
 "fingerprint" of what the page shows and re-checks it:
 
 | Trigger                                         | What happens on a change                                                              |
@@ -43,7 +68,7 @@ minute while the tab is in the background, so you can watch a pipeline from anot
 
 ### GitHub look (`github-theme`)
 
-GitLab, colored and shaped like GitHub, in light and dark mode:
+GitLab, colored and shaped like GitHub (tuned for dark mode, works in light):
 
 - GitLab's whole color palette swapped for GitHub's Primer palette, so every GitLab component
   (including ones not styled by hand) comes out in GitHub colors
@@ -64,7 +89,7 @@ GitLab, colored and shaped like GitHub, in light and dark mode:
 
 Tabs lead with the repo name instead of burying it at the end:
 
-| GitLab's title                                                     | Better GitLab              |
+| GitLab's title                                                     | LabHub                     |
 | ------------------------------------------------------------------ | -------------------------- |
 | Merge requests · Acme / experiments / agent-os-ui · GitLab         | agent-os-ui · MRs          |
 | Fix login (!12) · Merge requests · Acme / … / agent-os-ui · GitLab | agent-os-ui !12 Fix login  |
@@ -84,7 +109,7 @@ finder, `y` permalink, `?` shortcut list, `[`/`]` previous/next file and the **V
 Every feature can be toggled from the toolbar popup, and there's a master on/off switch.
 Settings → intervals, auto-reload vs banner-only, self-hosted instances, logs.
 
-## Install (load unpacked)
+## Build from source
 
 ```sh
 npm install
@@ -97,10 +122,7 @@ select `.output/chrome-mv3`. After a rebuild, hit the reload icon on the extensi
 For development, `npm run dev` builds `.output/chrome-mv3-dev`; load that folder instead and it
 hot-reloads on every change (keep `npm run dev` running). Don't load both at once.
 
-### Self-hosted GitLab
-
-Open your instance, click the extension icon → **Enable on <host>** (or add it in Settings).
-Chrome asks for permission for that origin only; the content script is then registered for it.
+Releases are cut by pushing a `v*` tag: CI builds the zip and attaches it to a GitHub release.
 
 ## Development
 
@@ -130,3 +152,12 @@ logging** is on). All levels are buffered (last 1000) and viewable/exportable in
 
 Read-only `GET /api/v4/...` from the page's own origin with your existing session cookie —
 no tokens, nothing leaves your browser.
+
+## Privacy
+
+LabHub has no server and no analytics. It only reads from the GitLab instance you are already
+signed in to, with your own browser session, and stores its settings in Chrome sync storage.
+
+## License
+
+[MIT](LICENSE)

@@ -176,15 +176,15 @@ html.gl-dark:root {
   --bgl-diff-add: #2ea04326;
   --bgl-diff-add-num: #3fb9504d;
   --bgl-diff-add-word: #2ea04366;
-  --bgl-diff-del: #f8514926;
+  --bgl-diff-del: #f851491a;
   --bgl-diff-del-num: #f851494d;
   --bgl-diff-del-word: #f8514966;
   --bgl-counter-bg: #2f3742;
   --bgl-success-fg: #3fb950;
   --bgl-danger-fg: #f85149;
-  --bgl-diffstat-add: #2ea043;
+  --bgl-diffstat-add: #238636;
   --bgl-diffstat-del: #da3633;
-  --bgl-diffstat-neutral: #3d444d;
+  --bgl-diffstat-neutral: #656c7633;
 }
 
 /* ---- Layer 2: semantic roles -------------------------------------------------------------- */
@@ -580,4 +580,112 @@ html:root .rd-stats-added {
 }
 html:root .rd-stats-removed {
   color: var(--bgl-danger-fg);
+}
+
+/* ---- Diffs, matched to github.com's dark diff (values read from its --diffBlob-* tokens) ---- */
+
+html.gl-dark:root {
+  --bgl-diff-hunk-bg: #388bfd1a;
+  --bgl-diff-hunk-fg: #9198a1;
+  --bgl-diff-hunk-num-bg: #0c2d6b;
+}
+html:root {
+  --bgl-diff-hunk-bg: #ddf4ff;
+  --bgl-diff-hunk-fg: #59636e;
+  --bgl-diff-hunk-num-bg: #b6e3ff;
+}
+
+/* GitHub's 12px / 20px code, primary-colored text, muted line numbers. */
+html:root .rd-text-view-root,
+html:root .diff-content .diff-table {
+  font-size: 12px;
+}
+html:root .rd-line-content,
+html:root .diff-content .line_content {
+  color: var(--bgl-fg);
+}
+html:root .rd-line-number,
+html:root .diff-content .diff-line-num {
+  color: var(--bgl-fg-muted);
+}
+html:root .rd-line-number[data-change],
+html:root .diff-content .diff-line-num.new,
+html:root .diff-content .diff-line-num.old {
+  color: var(--bgl-fg);
+}
+
+/* Hunk headers ("@@ -36,6 +36,14 @@"): GitHub's blue band with a navy expander cell. */
+html:root tr.rd-hunk-header {
+  background-color: var(--bgl-diff-hunk-bg);
+  color: var(--bgl-diff-hunk-fg);
+}
+html:root tr.rd-hunk-header > .rd-hunk-header-content {
+  background-color: transparent;
+  color: var(--bgl-diff-hunk-fg);
+}
+html:root tr.rd-hunk-header > .rd-hunk-header-buttons {
+  background-color: var(--bgl-diff-hunk-num-bg);
+  color: var(--bgl-fg);
+}
+html:root tr.rd-hunk-header .rd-expand-lines-button {
+  background-color: transparent;
+  color: var(--bgl-fg-muted);
+}
+html:root tr.rd-hunk-header .rd-expand-lines-button:hover {
+  background-color: #1f6feb;
+  color: #ffffff;
+}
+html:root .diff-content .line_holder.match .line_content {
+  background-color: var(--bgl-diff-hunk-bg);
+  color: var(--bgl-diff-hunk-fg);
+}
+html:root .diff-content .line_holder.match .diff-line-num {
+  background-color: var(--bgl-diff-hunk-num-bg);
+}
+
+/* Syntax colors: GitHub dark ("prettylights") mapped onto GitLab's Rouge token classes. */
+html.gl-dark:root body .code-syntax-highlight-theme,
+html.gl-dark:root body .code.dark {
+  color: #f0f6fc;
+}
+html.gl-dark:root
+  body
+  :is(.code-syntax-highlight-theme, .code.dark)
+  :is(.c, .ch, .cd, .cm, .cpf, .c1, .cs, .cp) {
+  color: #9198a1;
+  font-style: normal;
+}
+html.gl-dark:root
+  body
+  :is(.code-syntax-highlight-theme, .code.dark)
+  :is(.k, .kd, .kn, .kp, .kr, .kv, .kt, .o, .ow) {
+  color: #ff7b72;
+  font-weight: normal;
+}
+html.gl-dark:root
+  body
+  :is(.code-syntax-highlight-theme, .code.dark)
+  :is(.s, .s1, .s2, .sa, .sb, .sc, .sd, .se, .sh, .si, .sx, .sr, .dl) {
+  color: #a5d6ff;
+}
+html.gl-dark:root
+  body
+  :is(.code-syntax-highlight-theme, .code.dark)
+  :is(.kc, .m, .mb, .mf, .mh, .mi, .mo, .il, .ss, .na, .no, .bp) {
+  color: #79c0ff;
+}
+html.gl-dark:root body :is(.code-syntax-highlight-theme, .code.dark) :is(.nf, .fm, .nd) {
+  color: #d2a8ff;
+}
+html.gl-dark:root
+  body
+  :is(.code-syntax-highlight-theme, .code.dark)
+  :is(.nc, .nn, .nb, .ne, .nv, .vc, .vg, .vi, .vm) {
+  color: #ffa657;
+}
+html.gl-dark:root body :is(.code-syntax-highlight-theme, .code.dark) :is(.nt) {
+  color: #7ee787;
+}
+html.gl-dark:root body :is(.code-syntax-highlight-theme, .code.dark) :is(.p, .n, .nx, .w) {
+  color: #f0f6fc;
 }

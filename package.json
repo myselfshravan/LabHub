@@ -1,8 +1,17 @@
 {
-  "name": "better-gitlab",
-  "description": "Make GitLab feel fresh: auto-refresh stale pages and GitHub-like UX.",
-  "private": true,
+  "name": "labhub",
+  "description": "GitLab, but it looks and feels like GitHub, and never shows you stale status.",
   "version": "0.1.0",
+  "license": "MIT",
+  "author": "Shravan Revanna <shravanrevanna@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/myselfshravan/LabHub.git"
+  },
+  "homepage": "https://github.com/myselfshravan/LabHub#readme",
+  "bugs": {
+    "url": "https://github.com/myselfshravan/LabHub/issues"
+  },
   "type": "module",
   "scripts": {
     "dev": "wxt",

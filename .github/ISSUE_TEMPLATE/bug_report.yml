@@ -1,0 +1,33 @@
+name: Bug report
+description: Something looks wrong or doesn't work on a GitLab page
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead. Screenshots help a lot.
+    validations:
+      required: true
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The kind of GitLab page (e.g. MR diff, issue list). Leave out private URLs.
+    validations:
+      required: true
+  - type: input
+    id: gitlab
+    attributes:
+      label: GitLab
+      description: gitlab.com or self-hosted (with version if you know it)
+  - type: input
+    id: versions
+    attributes:
+      label: LabHub and Chrome versions
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: LabHub settings → Logs → Export, with debug logging on. Remove anything private.
+      render: json
