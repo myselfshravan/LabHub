@@ -2,6 +2,10 @@
  * Namespaced logger. Every entry goes to the console as `[BGL:<ns>]` and to the background
  * service worker, which keeps a persisted ring buffer that the Options page can show/export.
  * Debug-level entries hit the console only when `settings.debug` is on (they are always buffered).
+ *
+ * Level policy: Chrome lists every content-script console.warn/error on chrome://extensions →
+ * Errors. Use warn/error only for things that are actually broken (a feature crashed, a GitLab
+ * selector stopped matching); expected fallbacks are info.
  */
 import { browser } from 'wxt/browser';
 

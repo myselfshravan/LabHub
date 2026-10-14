@@ -117,8 +117,9 @@ export default defineFeature({
       } catch (err) {
         if (signal.aborted) return;
         if (err instanceof ApiError && [401, 403, 404].includes(err.status)) {
-          // Not visible to this user (or not an API-able page): fall back to time-based mode.
-          log.warn(`fingerprint unavailable (${err.status}); using time-based refresh`);
+          // Not visible to this user (or not an API-able page): an expected condition, so info,
+          // not warn — warn/error surface on chrome://extensions as extension errors.
+          log.info(`fingerprint unavailable (${err.status}); using time-based refresh`);
           fingerprintDisabled = true;
         } else {
           log.debug(`check (${trigger}) failed; will retry on next trigger`, err);
