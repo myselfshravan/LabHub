@@ -89,14 +89,14 @@ GitLab, colored and shaped like GitHub (tuned for dark mode, works in light):
 
 Tabs lead with the repo name instead of burying it at the end:
 
-| GitLab's title                                                     | LabHub                     |
-| ------------------------------------------------------------------ | -------------------------- |
-| Merge requests · Acme / experiments / agent-os-ui · GitLab         | agent-os-ui · MRs          |
-| Fix login (!12) · Merge requests · Acme / … / agent-os-ui · GitLab | agent-os-ui !12 Fix login  |
-| Pipeline #99 · Acme / … / agent-os-ui · GitLab                     | agent-os-ui · Pipeline #99 |
-| README.md · main · Acme / … / agent-os-ui · GitLab                 | agent-os-ui · README.md    |
+| GitLab's title                                                 | LabHub                 |
+| -------------------------------------------------------------- | ---------------------- |
+| Merge requests · Acme / experiments / web-app · GitLab         | web-app · MRs          |
+| Fix login (!12) · Merge requests · Acme / … / web-app · GitLab | web-app !12 Fix login  |
+| Pipeline #99 · Acme / … / web-app · GitLab                     | web-app · Pipeline #99 |
+| README.md · main · Acme / … / web-app · GitLab                 | web-app · README.md    |
 
-Combined with freshness it reads e.g. `✅ agent-os-ui !12 Fix login`.
+Combined with freshness it reads e.g. `✅ web-app !12 Fix login`.
 
 ### ⌘K / Ctrl+K (`command-palette`)
 

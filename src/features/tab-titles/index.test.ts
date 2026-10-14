@@ -6,51 +6,41 @@ const page = (path: string, dataPage = '') =>
   parsePage(new URL(`https://gitlab.com${path}`), {
     dataset: { page: dataPage },
   } as unknown as HTMLElement);
-const P = 'ConfidoHealth / experiments / agent-os-ui';
+const P = 'Acme / experiments / web-app';
 
 describe('shortTitle', () => {
   it.each([
-    ['/c/e/agent-os-ui/-/merge_requests', `Merge requests · ${P} · GitLab`, 'agent-os-ui · MRs'],
-    ['/c/e/agent-os-ui/-/issues', `Issues · ${P} · GitLab`, 'agent-os-ui · Issues'],
-    ['/c/e/agent-os-ui/-/pipelines', `Pipelines · ${P} · GitLab`, 'agent-os-ui · Pipelines'],
+    ['/c/e/web-app/-/merge_requests', `Merge requests · ${P} · GitLab`, 'web-app · MRs'],
+    ['/c/e/web-app/-/issues', `Issues · ${P} · GitLab`, 'web-app · Issues'],
+    ['/c/e/web-app/-/pipelines', `Pipelines · ${P} · GitLab`, 'web-app · Pipelines'],
     [
-      '/c/e/agent-os-ui/-/merge_requests/12',
+      '/c/e/web-app/-/merge_requests/12',
       `Draft: Fix login (!12) · Merge requests · ${P} · GitLab`,
-      'agent-os-ui !12 Draft: Fix login',
+      'web-app !12 Draft: Fix login',
     ],
     [
-      '/c/e/agent-os-ui/-/merge_requests/12/diffs',
+      '/c/e/web-app/-/merge_requests/12/diffs',
       `Changes · Fix (login) (!12) · Merge requests · ${P} · GitLab`,
-      'agent-os-ui !12 Fix (login)',
+      'web-app !12 Fix (login)',
     ],
     [
-      '/c/e/agent-os-ui/-/work_items/7',
+      '/c/e/web-app/-/work_items/7',
       `Crash on boot (#7) · Work items · ${P} · GitLab`,
-      'agent-os-ui #7 Crash on boot',
+      'web-app #7 Crash on boot',
     ],
+    ['/c/e/web-app/-/pipelines/99', `Pipeline #99 · ${P} · GitLab`, 'web-app · Pipeline #99'],
+    ['/c/e/web-app/-/jobs/5', `rspec 1/2 (#5) · Jobs · ${P} · GitLab`, 'web-app · rspec 1/2'],
     [
-      '/c/e/agent-os-ui/-/pipelines/99',
-      `Pipeline #99 · ${P} · GitLab`,
-      'agent-os-ui · Pipeline #99',
-    ],
-    [
-      '/c/e/agent-os-ui/-/jobs/5',
-      `rspec 1/2 (#5) · Jobs · ${P} · GitLab`,
-      'agent-os-ui · rspec 1/2',
-    ],
-    [
-      '/c/e/agent-os-ui/-/blob/main/README.md',
+      '/c/e/web-app/-/blob/main/README.md',
       `README.md · main · ${P} · GitLab`,
-      'agent-os-ui · README.md',
+      'web-app · README.md',
     ],
   ])('%s', (path, title, want) => {
     expect(shortTitle(page(path), title)).toBe(want);
   });
 
   it('shortens project and group homes and group lists', () => {
-    expect(shortTitle(page('/c/e/agent-os-ui', 'projects:show'), `${P} · GitLab`)).toBe(
-      'agent-os-ui',
-    );
+    expect(shortTitle(page('/c/e/web-app', 'projects:show'), `${P} · GitLab`)).toBe('web-app');
     expect(
       shortTitle(page('/groups/acme/-/merge_requests'), 'Merge requests · Acme · GitLab'),
     ).toBe('acme · MRs');

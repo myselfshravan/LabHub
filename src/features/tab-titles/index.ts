@@ -1,7 +1,7 @@
 /**
  * Short tab titles that lead with the repo, so tabs are tellable apart:
- *   "Fix login (!12) · Merge requests · Acme / agent-os-ui · GitLab" → "agent-os-ui !12 Fix login"
- *   "Merge requests · Acme / agent-os-ui · GitLab"                     → "agent-os-ui · MRs"
+ *   "Fix login (!12) · Merge requests · Acme / web-app · GitLab" → "web-app !12 Fix login"
+ *   "Merge requests · Acme / web-app · GitLab"                     → "web-app · MRs"
  */
 import { defineFeature } from '@/core/feature';
 import type { PageContext } from '@/core/page';
@@ -45,7 +45,7 @@ export default defineFeature({
   id: 'tab-titles',
   title: 'Short tab titles',
   description:
-    'Lead tab titles with the repo name, e.g. "agent-os-ui · MRs" or "agent-os-ui !12 Fix login".',
+    'Lead tab titles with the repo name, e.g. "web-app · MRs" or "web-app !12 Fix login".',
   defaultOn: true,
   init({ page }) {
     tabTitle.setRewrite((t) => shortTitle(page, t));
