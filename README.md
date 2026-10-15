@@ -17,15 +17,15 @@
 
 **Merge request list**: GitHub repo header and tabs, state icons, one bordered list
 
-![Merge request list](docs/screenshots/mr-list.jpg)
+![Merge request list](docs/screenshots/merge-request-list.jpg)
 
 **Merge request**: big title with `!number`, state pill, GitHub tab counters, bordered description
 
-![Merge request page](docs/screenshots/mr-page.jpg)
+![Merge request page](docs/screenshots/merge-request.jpg)
 
 **Diff**: GitHub's dark diff colors, blue hunk headers, syntax colors and diffstat squares
 
-![Merge request diff](docs/screenshots/diff.jpg)
+![Merge request diff](docs/screenshots/merge-request-diff.jpg)
 
 <sub>gitlab.com in dark mode with LabHub on.</sub>
 
