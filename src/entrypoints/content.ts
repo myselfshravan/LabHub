@@ -34,7 +34,14 @@ export default defineContentScript({
       running: registry.running(),
     });
 
-    ctx.addEventListener(window, 'wxt:locationchange', sync);
+    // wxt:locationchange fires from the Navigation API's `navigate` event, before the new URL
+    // commits, so `location.href` there is still the previous page. `currententrychange` fires
+    // after the commit, for same-document navigations only (pushState, replaceState, back/forward).
+    if (typeof navigation !== 'undefined') {
+      ctx.addEventListener(navigation, 'currententrychange', sync);
+    } else {
+      ctx.addEventListener(window, 'wxt:locationchange', sync);
+    }
     const unwatch = watchSettings((s) => {
       settings = s;
       setConsoleDebug(s.debug);
