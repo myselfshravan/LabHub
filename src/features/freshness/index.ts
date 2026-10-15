@@ -161,6 +161,9 @@ export default defineFeature({
           return;
         }
         const changes = diffFingerprints(baseline, fp);
+        // Fields the baseline never saw (a best-effort request failed at load) start from now,
+        // so they're compared from the next check on instead of never.
+        baseline = { ...baseline, fields: { ...fp.fields, ...baseline.fields } };
         log.debug(`check (${trigger}) in ${Math.round(performance.now() - started)}ms`, {
           changes: changes.length,
         });

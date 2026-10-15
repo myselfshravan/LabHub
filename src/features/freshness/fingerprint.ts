@@ -43,12 +43,14 @@ const LABELS: Record<string, string> = {
 
 /**
  * Lists the fields that differ. `updated` (a bare timestamp) is only reported when nothing more
- * descriptive changed, since every other change bumps it too.
+ * descriptive changed, since every other change bumps it too. A field missing on either side is
+ * unknown (its best-effort request failed), not changed.
  */
 export function diffFingerprints(a: Fingerprint, b: Fingerprint): Change[] {
   const keys = new Set([...Object.keys(a.fields), ...Object.keys(b.fields)]);
   const changes: Change[] = [];
   for (const field of keys) {
+    if (!(field in a.fields) || !(field in b.fields)) continue;
     const from = a.fields[field] ?? null;
     const to = b.fields[field] ?? null;
     if (from !== to) changes.push({ field, label: LABELS[field] ?? field, from, to });
@@ -253,12 +255,13 @@ export function fetcherFor(page: PageContext, api: GitLabApi): FingerprintFetche
             pipelineId: hp ? hp.id : null,
             notes: mr.user_notes_count,
             conflicts: mr.has_conflicts,
-            approvals: approvals
-              ? (approvals.approved_by ?? [])
-                  .map((a) => a.user.id)
-                  .sort()
-                  .join(',')
-              : null,
+            // Left out when the request failed, so a flaky endpoint doesn't read as a change.
+            ...(approvals && {
+              approvals: (approvals.approved_by ?? [])
+                .map((a) => a.user.id)
+                .sort()
+                .join(','),
+            }),
             updated: mr.updated_at,
           },
           ciStatus: hp?.status ?? null,

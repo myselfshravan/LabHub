@@ -32,6 +32,14 @@ describe('diffFingerprints', () => {
   it('is empty for identical fingerprints', () => {
     expect(diffFingerprints(fp({ a: 1 }), fp({ a: 1 }))).toEqual([]);
   });
+
+  it('treats a field missing on one side as unknown, not changed', () => {
+    expect(diffFingerprints(fp({ approvals: '3', sha: 'a' }), fp({ sha: 'a' }))).toEqual([]);
+    expect(diffFingerprints(fp({ sha: 'a' }), fp({ approvals: '3', sha: 'a' }))).toEqual([]);
+    expect(diffFingerprints(fp({ newest: null }), fp({ newest: 9 })).map((c) => c.field)).toEqual([
+      'newest',
+    ]);
+  });
 });
 
 describe('list helpers', () => {
@@ -168,6 +176,31 @@ describe('fetcherFor', () => {
       approvals: '3,9',
       sha: 'abc',
     });
+  });
+
+  it('leaves approvals out when that request fails, so it never reads as a change', async () => {
+    const mr = {
+      state: 'opened',
+      sha: 'abc',
+      user_notes_count: 2,
+      has_conflicts: false,
+      updated_at: 't',
+      head_pipeline: null,
+    };
+    const ok = api({
+      'projects/o%2Fr/merge_requests/5/approvals': { approved_by: [{ user: { id: 3 } }] },
+      'projects/o%2Fr/merge_requests/5': mr,
+    });
+    const failing = api({});
+    vi.mocked(failing.get).mockImplementation((async (path: string) => {
+      if (path.endsWith('/approvals')) throw new Error('429');
+      return mr;
+    }) as GitLabApi['get']);
+    const signal = new AbortController().signal;
+    const before = await fetcherFor(page('/o/r/-/merge_requests/5'), ok)!(signal);
+    const after = await fetcherFor(page('/o/r/-/merge_requests/5'), failing)!(signal);
+    expect(after.fields).not.toHaveProperty('approvals');
+    expect(diffFingerprints(before, after)).toEqual([]);
   });
 
   it('fingerprints a project list by its rendered rows', async () => {
