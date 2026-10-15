@@ -1,7 +1,7 @@
 {
   "name": "labhub",
   "description": "GitLab, but it looks and feels like GitHub, and never shows you stale status.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "author": "Shravan Revanna <shravanrevanna@gmail.com>",
   "repository": {

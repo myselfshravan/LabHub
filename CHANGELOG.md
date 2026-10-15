@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1
+
+Fixes from [#4](https://github.com/myselfshravan/LabHub/pull/4) by @utkarshchoubeycs:
+
+- In-page navigation re-syncs after the new URL commits, so features no longer lag one page behind.
+- A failed approvals request no longer looks like a change (no more false reloads/banners).
+- Settings store only your overrides, so new defaults in later versions reach you.
+- "CI finished" notifications on hidden tabs work even with tab-title status turned off.
+
 ## 0.1.0
 
 First release.
