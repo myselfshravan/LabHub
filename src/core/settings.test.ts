@@ -1,5 +1,35 @@
-import { describe, expect, it } from 'vitest';
-import { DEFAULT_SETTINGS, isFeatureOn, mergeDefaults } from './settings';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { fakeBrowser } from 'wxt/testing/fake-browser';
+import { storage } from 'wxt/utils/storage';
+import {
+  DEFAULT_SETTINGS,
+  getSettings,
+  isFeatureOn,
+  mergeDefaults,
+  updateSettings,
+} from './settings';
+
+describe('updateSettings', () => {
+  beforeEach(() => fakeBrowser.reset());
+
+  it('stores only the user’s values, so later default changes still apply', async () => {
+    await updateSettings({ freshness: { mode: 'banner' } });
+    await updateSettings({ features: { 'tab-titles': false } });
+    expect(await storage.getItem('sync:settings')).toEqual({
+      freshness: { mode: 'banner' },
+      features: { 'tab-titles': false },
+    });
+    const s = await getSettings();
+    expect(s.freshness.mode).toBe('banner');
+    expect(s.freshness.pollIntervalSec).toBe(DEFAULT_SETTINGS.freshness.pollIntervalSec);
+  });
+
+  it('returns the full settings and keeps earlier overrides', async () => {
+    await updateSettings({ freshness: { poll: false } });
+    const s = await updateSettings({ freshness: { notify: false } });
+    expect(s.freshness).toMatchObject({ poll: false, notify: false, mode: 'auto' });
+  });
+});
 
 describe('settings', () => {
   it('fills missing nested keys from defaults', () => {

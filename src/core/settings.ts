@@ -85,10 +85,14 @@ export async function getSettings(): Promise<Settings> {
   return mergeDefaults(DEFAULT_SETTINGS, await settingsItem.getValue());
 }
 
+/**
+ * Stores only the user's own values (what was stored, plus the patch), never the defaults, so a
+ * default changed in a later version still reaches everyone who didn't override that key.
+ */
 export async function updateSettings(patch: DeepPartial<Settings>): Promise<Settings> {
-  const next = mergeDefaults(await getSettings(), patch);
+  const next = mergeDefaults(await settingsItem.getValue(), patch);
   await settingsItem.setValue(next);
-  return next;
+  return mergeDefaults(DEFAULT_SETTINGS, next);
 }
 
 export function watchSettings(cb: (s: Settings) => void): () => void {

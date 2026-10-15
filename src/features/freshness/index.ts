@@ -161,6 +161,9 @@ export default defineFeature({
           return;
         }
         const changes = diffFingerprints(baseline, fp);
+        // Fields the baseline never saw (a best-effort request failed at load) start from now,
+        // so they're compared from the next check on instead of never.
+        baseline = { ...baseline, fields: { ...fp.fields, ...baseline.fields } };
         log.debug(`check (${trigger}) in ${Math.round(performance.now() - started)}ms`, {
           changes: changes.length,
         });
@@ -255,7 +258,8 @@ export default defineFeature({
       onCleanup(() => clearInterval(id));
     }
 
-    if (cfg.titleStatus && CI_PAGES.has(page.kind) && !fingerprintDisabled) {
+    // The hidden-tab check feeds both the title status and the "CI finished" notification.
+    if ((cfg.titleStatus || cfg.notify) && CI_PAGES.has(page.kind) && !fingerprintDisabled) {
       const id = setInterval(() => {
         if (document.visibilityState === 'hidden') void check('title');
       }, HIDDEN_TITLE_INTERVAL_MS);
