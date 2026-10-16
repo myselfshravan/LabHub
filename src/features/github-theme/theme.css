@@ -689,3 +689,216 @@ html.gl-dark:root body :is(.code-syntax-highlight-theme, .code.dark) :is(.nt) {
 html.gl-dark:root body :is(.code-syntax-highlight-theme, .code.dark) :is(.p, .n, .nx, .w) {
   color: #f0f6fc;
 }
+
+/* File (blob) pages: GitHub's file view — path as a small heading, a bordered "latest commit"
+   box, and one rounded file box with a muted header bar, muted line numbers and 20px lines. */
+/* GitHub has no big file-name heading: the bold breadcrumb is the title. Keep the controls. */
+html:root .tree-holder [data-testid='repository-heading'] {
+  display: none;
+}
+html:root .tree-holder .repo-breadcrumb .gl-breadcrumb-item:last-child,
+html:root .tree-holder .repo-breadcrumb .gl-breadcrumb-item:last-child a {
+  color: var(--bgl-fg);
+  font-size: 16px;
+  font-weight: 600;
+}
+/* Branch + path and the file controls share one row, as on GitHub. */
+html:root .tree-holder > section {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+html:root .tree-holder > section > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+html:root .tree-holder > section > :first-child {
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+html:root .tree-holder > section > :last-child {
+  flex: 0 0 auto;
+}
+/* Edit is a plain button on GitHub, not a green primary one. */
+html:root [data-testid='blob-controls'] .btn-confirm {
+  border-color: var(--bgl-btn-border);
+  background: var(--bgl-btn-bg);
+  color: var(--bgl-fg);
+}
+html:root .tree-holder .info-well {
+  margin-bottom: 16px;
+  border: 1px solid var(--bgl-border);
+  border-radius: 6px;
+  background: var(--bgl-canvas);
+  overflow: hidden;
+}
+html:root .tree-holder .info-well .well-segment.commit {
+  padding: 8px 16px !important;
+  background: var(--bgl-canvas-subtle);
+}
+html:root .tree-holder .info-well .well-segment.commit .avatar {
+  width: 24px;
+  height: 24px;
+}
+html:root .tree-holder .info-well .well-segment.blob-auxiliary-viewer {
+  padding: 8px 16px;
+}
+html:root .tree-holder .info-well .well-segment {
+  border-color: var(--bgl-border-muted);
+}
+html:root .blob-content-holder .file-holder {
+  border: 1px solid var(--bgl-border);
+  border-radius: 6px;
+  background: var(--bgl-canvas);
+}
+html:root .blob-content-holder .file-holder > .js-file-title {
+  min-height: 48px;
+  padding: 8px 8px 8px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--bgl-border);
+  border-radius: 6px 6px 0 0;
+  background: var(--bgl-canvas-subtle);
+}
+/* File bar in GitHub's order: Preview/Code/Blame first, then muted size, actions on the right.
+   GitHub doesn't repeat the file name here. */
+html:root .blob-content-holder .js-file-title,
+html:root .blob-content-holder .js-file-title .file-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+html:root .blob-content-holder .js-file-title .file-actions {
+  display: contents;
+}
+html:root .blob-content-holder .js-file-title .js-blob-viewer-switcher {
+  order: 1;
+}
+html:root .blob-content-holder .js-file-title > :first-child {
+  order: 2;
+  margin-right: auto;
+}
+html:root .blob-content-holder .js-file-title .file-actions > :not(.js-blob-viewer-switcher),
+html:root .blob-content-holder .js-file-title .file-actions .gl-contents > * {
+  order: 3;
+}
+html:root .blob-content-holder .js-file-title .file-header-content > :not(small) {
+  display: none;
+}
+html:root .blob-content-holder .js-file-title .file-header-content small {
+  margin: 0;
+  padding: 0;
+  color: var(--bgl-fg-muted);
+  font-family: var(--bgl-mono);
+  font-size: 12px;
+}
+html:root .blob-content-holder .file-holder .blob-viewer,
+html:root .blob-content-holder .file-holder .file-content {
+  border: 0;
+  border-radius: 0 0 6px 6px;
+  background: var(--bgl-canvas);
+}
+html:root .blob-content-holder .file-content.code,
+html:root .blob-content-holder .file-content.code :is(pre, code, .line-numbers, .diff-line-num) {
+  font-family: var(--bgl-mono);
+  font-size: 12px;
+  line-height: 20px;
+}
+html:root .blob-content-holder .file-content.code .line-numbers,
+html:root .blob-content-holder .file-content.code .line-numbers a,
+html:root .blob-content-holder .file-content.code .diff-line-num {
+  border: 0;
+  background: var(--bgl-canvas);
+  color: var(--bgl-fg-muted);
+}
+html:root .blob-content-holder .file-content.md {
+  max-width: 1012px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+/* Code / Preview / Blame: GitHub's SegmentedControl. */
+html:root .blob-content-holder .js-blob-viewer-switcher {
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--bgl-border);
+  border-radius: 6px;
+  background: var(--bgl-canvas-subtle);
+}
+html:root .blob-content-holder .js-blob-viewer-switcher > .btn {
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--bgl-fg-muted);
+}
+html:root .blob-content-holder .js-blob-viewer-switcher > .btn.btn-default.selected,
+html:root
+  .blob-content-holder
+  .js-blob-viewer-switcher
+  > .btn.btn-default.selected
+  .gl-button-text {
+  border-color: var(--bgl-border);
+  background: var(--bgl-btn-bg);
+  color: var(--bgl-fg);
+  font-weight: 600;
+}
+
+/* Repository file list: GitHub's single box — the latest-commit bar is the box's header (no
+   Name / Last commit / Last update row), grey Octicon folder and file icons, muted rows. */
+html:root .tree-holder .info-well.project-last-commit {
+  margin: 16px 0 0;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  background: var(--bgl-canvas-subtle);
+}
+html:root .tree-holder .info-well.project-last-commit + * .table-holder {
+  border-color: var(--bgl-border);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+html:root table.tree-table thead {
+  display: none;
+}
+html:root table.tree-table tbody tr.tree-item > * {
+  padding: 8px 16px;
+  border-color: var(--bgl-border-muted);
+  background: var(--bgl-canvas);
+  font-size: 14px;
+  line-height: 20px;
+}
+html:root table.tree-table tbody tr.tree-item:hover > * {
+  background: var(--bgl-canvas-subtle);
+}
+html:root table.tree-table [data-testid='file-name-link'] {
+  color: var(--bgl-fg);
+}
+html:root table.tree-table [data-testid='file-name-link']:hover {
+  color: var(--bgl-accent);
+}
+html:root table.tree-table [data-testid='file-name-link'] > span:first-child {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  background: var(--bgl-fg-muted);
+  -webkit-mask: var(--bgl-tree-icon) center / contain no-repeat;
+  mask: var(--bgl-tree-icon) center / contain no-repeat;
+  --bgl-tree-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z'/%3E%3C/svg%3E");
+}
+html:root table.tree-table [data-testid='file-name-link'] > span:first-child:has(.folder-icon) {
+  background: #9198a1;
+  --bgl-tree-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75Z'/%3E%3C/svg%3E");
+}
+html:root table.tree-table [data-testid='file-name-link'] > span:first-child > * {
+  visibility: hidden;
+}
+html:root table.tree-table .tree-commit-link,
+html:root table.tree-table .tree-time-ago {
+  color: var(--bgl-fg-muted);
+}
