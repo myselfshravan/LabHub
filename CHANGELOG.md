@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.2
 
 - **Background refresh replaces the "updates" bar:** stale background tabs refresh right away;
   the tab you're on refreshes in place once you pause (scroll kept). The bar only appears when
