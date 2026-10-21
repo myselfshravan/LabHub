@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **Background refresh replaces the "updates" bar:** stale background tabs refresh right away;
+  the tab you're on refreshes in place once you pause (scroll kept). The bar only appears when
+  a refresh would lose typed text, a dialog or a selection.
+- **Open counts in list tab titles:** `web-app · MRs (3)`, `web-app · Issues (12)`, kept current
+  while the tab is in the background.
+
 ## 0.1.1
 
 Fixes from [#4](https://github.com/myselfshravan/LabHub/pull/4) by @utkarshchoubeycs:

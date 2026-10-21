@@ -17,7 +17,8 @@ export interface FreshnessSettings {
   poll: boolean;
   pollIntervalSec: number;
   /**
-   * `auto`: reload on focus when a change is found and the page is safe to reload.
+   * `auto`: refresh stale pages in the background (hidden tabs at once, the visible tab once
+   * the user pauses), never while something would be lost.
    * `banner`: never reload by itself, always ask via the banner.
    */
   mode: FreshnessMode;

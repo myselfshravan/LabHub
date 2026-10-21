@@ -1,14 +1,19 @@
 /**
  * Freshness: GitLab pages go stale (MR status, pipelines, approvals, lists) because most of the
  * page is server-rendered once and polling is partial. We take an API fingerprint of what the
- * page shows, re-check it on the triggers below, and when it differs either reload (if the
- * user just came back to the tab and nothing would be lost) or show an "updates" banner.
+ * page shows, re-check it on the triggers below, and when it differs refresh the page in the
+ * background ("auto" mode) — or, in "banner" mode, show an "updates" banner instead.
  *
  * Triggers:
- *  - return to the tab (visibility/focus) after being away ≥ hiddenThresholdSec → may auto-reload
- *  - back/forward-cache restore and network coming back online → may auto-reload
- *  - polling while visible → banner only (never yank the page from under someone reading it)
+ *  - return to the tab (visibility/focus) after being away ≥ hiddenThresholdSec
+ *  - back/forward-cache restore and network coming back online
+ *  - polling while visible, and a slower check while the tab is hidden
  *  - first mouse/keyboard activity after the visible tab sat idle → treated like returning
+ *
+ * Background refresh: a hidden tab reloads as soon as it's found stale, so it's already fresh
+ * when you come back. A visible tab reloads once you've been hands-off for QUIET_MS (scroll is
+ * restored). Nothing reloads while it would lose something (typed text, open dialog, text
+ * selection); then the banner is the fallback until it's safe.
  *
  * Polling pauses while idle or offline and backs off on errors, so a forgotten tab on a second
  * monitor doesn't hit the API all night. CI finishing / MR merged or approved while you're not
@@ -38,7 +43,7 @@ import { unsafeReason } from './safety';
 import { restoreScroll, saveScroll } from './scroll';
 import { createTitleStatus } from './title';
 
-type Trigger = 'init' | 'focus' | 'poll' | 'online' | 'bfcache' | 'title';
+type Trigger = 'init' | 'focus' | 'poll' | 'online' | 'bfcache' | 'hidden';
 type AwayReason = 'hidden' | 'blur' | 'idle';
 
 /** Triggers where the user is (re)arriving, so a reload isn't disruptive. */
@@ -50,20 +55,26 @@ const LIVE_PAGES: ReadonlySet<PageKind> = new Set(['pipeline', 'pipeline-list', 
 /** Pages with a CI status for the tab title. */
 const CI_PAGES: ReadonlySet<PageKind> = new Set(['mr', 'pipeline', 'job']);
 
-/** Title-only refresh rate for hidden tabs (one small request per tab). */
-const HIDDEN_TITLE_INTERVAL_MS = 60_000;
+/** Check rate for hidden tabs (one small request per tab). */
+const HIDDEN_INTERVAL_MS = 60_000;
+
+/** A visible page only refreshes after this long without mouse/keyboard input. */
+const QUIET_MS = 8_000;
+
+/** How often a pending background refresh re-checks whether it may go ahead. */
+const PENDING_RETRY_MS = 2_000;
 
 /** Longest pause between background checks after repeated failures. */
 const MAX_BACKOFF_MS = 10 * 60_000;
 
 /** Background triggers that should respect idle/offline/backoff (arrivals always check). */
-const BACKGROUND: ReadonlySet<Trigger> = new Set(['poll', 'title']);
+const BACKGROUND: ReadonlySet<Trigger> = new Set(['poll', 'hidden']);
 
 export default defineFeature({
   id: 'freshness',
   title: 'Keep pages fresh',
   description:
-    'Detects when MR/pipeline/issue/list pages are out of date and reloads them when you come back to the tab, or shows an "updates available" banner.',
+    'Detects when MR/issue/list pages are out of date and refreshes them in the background, without losing anything you are typing.',
   defaultOn: true,
   settingsKey: (s) => s.freshness,
 
@@ -87,8 +98,17 @@ export default defineFeature({
     let previous: Fingerprint | undefined;
     let dismissedSig: string | undefined;
     let lastSig: string | undefined;
+    /** Changes found but not yet applied because reloading right now would be disruptive. */
+    let pending: Change[] | undefined;
+    let pendingTimer: ReturnType<typeof setInterval> | undefined;
+    onCleanup(() => clearInterval(pendingTimer));
 
+    /** Set once a reload is requested: nothing else should act on this document any more. */
+    let reloading = false;
     const reload = (why: string) => {
+      if (reloading) return;
+      reloading = true;
+      clearInterval(pendingTimer);
       log.info(`reloading: ${why}`);
       saveScroll(page.key);
       location.reload();
@@ -111,14 +131,34 @@ export default defineFeature({
       banner.show('This page has updates', lines.slice(0, 2).join(' · '));
     };
 
-    /** Reload if allowed and safe; otherwise fall back to the banner. */
-    const act = (trigger: Trigger, changes: Change[]) => {
-      if (ARRIVAL.has(trigger) && cfg.mode === 'auto') {
-        const unsafe = unsafeReason();
-        if (!unsafe) return reload(`${trigger}: ${changes.map(describeChange).join(', ')}`);
-        log.info(`not reloading (${unsafe}); showing banner`);
+    /**
+     * Background refresh: go ahead when nothing would be lost and the user isn't mid-look —
+     * hidden tab, just arrived, or hands-off for QUIET_MS. Returns whether it reloaded.
+     */
+    const tryRefresh = (trigger: Trigger | 'pending', changes: Change[]): boolean => {
+      const unsafe = unsafeReason();
+      if (unsafe) {
+        if (pending === undefined) log.info(`not refreshing yet (${unsafe}); showing banner`);
+        announce(changes);
+        return false;
       }
-      announce(changes);
+      const hidden = document.visibilityState === 'hidden';
+      const quiet = Date.now() - lastActivity >= QUIET_MS;
+      if (!hidden && !quiet && !ARRIVAL.has(trigger as Trigger)) return false;
+      reload(`${trigger}: ${changes.map(describeChange).join(', ')}`);
+      return true;
+    };
+
+    /** Refresh in the background when allowed; otherwise wait for a safe, quiet moment. */
+    const act = (trigger: Trigger, changes: Change[]) => {
+      if (cfg.mode !== 'auto') return announce(changes);
+      if (tryRefresh(trigger, changes)) return;
+      pending = changes;
+      if (pendingTimer !== undefined) return;
+      log.debug('refresh pending until the page is safe and quiet');
+      pendingTimer = setInterval(() => {
+        if (pending && !signal.aborted) tryRefresh('pending', pending);
+      }, PENDING_RETRY_MS);
     };
 
     const notify = (fp: Fingerprint) => {
@@ -132,7 +172,7 @@ export default defineFeature({
     };
 
     const check = async (trigger: Trigger, awayMs = 0) => {
-      if (signal.aborted || inFlight) return;
+      if (signal.aborted || inFlight || reloading) return;
       if (BACKGROUND.has(trigger) && (!navigator.onLine || Date.now() < retryAt)) return;
 
       if (fingerprintDisabled) {
@@ -154,7 +194,7 @@ export default defineFeature({
         retryAt = 0;
         if (cfg.titleStatus && fp.ciStatus !== undefined) title.set(fp.ciStatus);
         notify(fp);
-        if (live || trigger === 'title') return;
+        if (live) return;
         if (!baseline) {
           baseline = fp;
           log.debug('baseline', fp.fields);
@@ -168,7 +208,10 @@ export default defineFeature({
           changes: changes.length,
         });
         if (changes.length) act(trigger, changes);
-        else banner.hide();
+        else {
+          pending = undefined;
+          banner.hide();
+        }
       } catch (err) {
         if (signal.aborted) return;
         if (err instanceof ApiError && [401, 403, 404].includes(err.status)) {
@@ -215,8 +258,14 @@ export default defineFeature({
     window.addEventListener('blur', () => markAway('blur'), opts);
     window.addEventListener('focus', () => markBack('focus'), opts);
 
-    // Idle: a visible tab nobody has touched for a while.
-    if (cfg.idleAfterSec > 0) {
+    // Input tracking (for "quiet" refreshes) and idle: a visible tab nobody has touched.
+    const inputEvents = ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'];
+    if (cfg.idleAfterSec <= 0) {
+      const touch = () => (lastActivity = Date.now());
+      for (const ev of inputEvents) {
+        window.addEventListener(ev, touch, { ...opts, passive: true, capture: true });
+      }
+    } else {
       const idleMs = cfg.idleAfterSec * 1000;
       const onActivity = () => {
         lastActivity = Date.now();
@@ -225,7 +274,7 @@ export default defineFeature({
         log.debug('active again');
         markBack('activity');
       };
-      for (const ev of ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart']) {
+      for (const ev of inputEvents) {
         window.addEventListener(ev, onActivity, { ...opts, passive: true, capture: true });
       }
       const id = setInterval(
@@ -258,11 +307,15 @@ export default defineFeature({
       onCleanup(() => clearInterval(id));
     }
 
-    // The hidden-tab check feeds both the title status and the "CI finished" notification.
-    if ((cfg.titleStatus || cfg.notify) && CI_PAGES.has(page.kind) && !fingerprintDisabled) {
+    // Hidden tabs: background refresh (auto mode), plus the title status and "CI finished"
+    // notification on CI pages.
+    const hiddenUseful = live
+      ? (cfg.titleStatus || cfg.notify) && CI_PAGES.has(page.kind)
+      : cfg.mode === 'auto' || ((cfg.titleStatus || cfg.notify) && CI_PAGES.has(page.kind));
+    if (hiddenUseful && !fingerprintDisabled) {
       const id = setInterval(() => {
-        if (document.visibilityState === 'hidden') void check('title');
-      }, HIDDEN_TITLE_INTERVAL_MS);
+        if (document.visibilityState === 'hidden') void check('hidden');
+      }, HIDDEN_INTERVAL_MS);
       onCleanup(() => clearInterval(id));
     }
 

@@ -50,11 +50,12 @@ GitLab renders most of a page once; come back to a tab later and the MR status, 
 approvals or list you're looking at may be out of date. LabHub takes a cheap API
 "fingerprint" of what the page shows and re-checks it:
 
-| Trigger                                         | What happens on a change                                                              |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------- |
-| You return to the tab (away ≥ 5 s)              | Reloads automatically **if nothing would be lost**, else shows a banner               |
-| Back/forward cache restore, network back online | Same as above                                                                         |
-| Every 30 s while the tab is visible             | Shows a "This page has updates · Reload" banner (never yanks the page while you read) |
+| When                                    | What happens on a change                                                     |
+| --------------------------------------- | ---------------------------------------------------------------------------- |
+| The tab is in the background (each min) | Refreshes right away, so it's already fresh when you switch back             |
+| You're on the tab (checked every 30 s)  | Refreshes in place once you pause for a few seconds; scroll position is kept |
+| You return to the tab, or come online   | Refreshes immediately                                                        |
+| A refresh would lose something          | Waits, and shows a small "This page has updates" bar until it's safe         |
 
 "Nothing would be lost" means: no typed text in a comment box or field, no focused input,
 no open editor/dialog, no text selection. Scroll position is restored after a reload.
@@ -99,7 +100,7 @@ Tabs lead with the repo name instead of burying it at the end:
 
 | GitLab's title                                                 | LabHub                 |
 | -------------------------------------------------------------- | ---------------------- |
-| Merge requests · Acme / experiments / web-app · GitLab         | web-app · MRs          |
+| Merge requests · Acme / experiments / web-app · GitLab         | web-app · MRs (3)      |
 | Fix login (!12) · Merge requests · Acme / … / web-app · GitLab | web-app !12 Fix login  |
 | Pipeline #99 · Acme / … / web-app · GitLab                     | web-app · Pipeline #99 |
 | README.md · main · Acme / … / web-app · GitLab                 | web-app · README.md    |
@@ -115,7 +116,7 @@ GitLab already has the other GitHub shortcuts natively, so they aren't duplicate
 finder, `y` permalink, `?` shortcut list, `[`/`]` previous/next file and the **Viewed** checkbox in MR diffs.
 
 Every feature can be toggled from the toolbar popup, and there's a master on/off switch.
-Settings → intervals, auto-reload vs banner-only, self-hosted instances, logs.
+Settings → intervals, background refresh vs banner-only, self-hosted instances, logs.
 
 ## Build from source
 

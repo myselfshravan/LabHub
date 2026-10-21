@@ -1,9 +1,11 @@
 /**
  * Short tab titles that lead with the repo, so tabs are tellable apart:
  *   "Fix login (!12) · Merge requests · Acme / web-app · GitLab" → "web-app !12 Fix login"
- *   "Merge requests · Acme / web-app · GitLab"                     → "web-app · MRs"
+ *   "Merge requests · Acme / web-app · GitLab"                     → "web-app · MRs (3)"
+ * MR and issue list tabs carry the number of open items, kept current while the tab is hidden.
  */
 import { defineFeature } from '@/core/feature';
+import type { GitLabApi } from '@/core/api';
 import type { PageContext } from '@/core/page';
 import { tabTitle } from '@/core/title';
 
@@ -13,8 +15,14 @@ const LIST_LABEL: Partial<Record<PageContext['kind'], string>> = {
   'pipeline-list': 'Pipelines',
 };
 
-/** Rewrites GitLab's "Item · Section · Namespace / Project · GitLab" title for this page. */
-export function shortTitle(page: PageContext, title: string): string {
+/** Open-item count shown on list tabs; refreshed this often while the tab is hidden. */
+const COUNT_REFRESH_MS = 60_000;
+
+/**
+ * Rewrites GitLab's "Item · Section · Namespace / Project · GitLab" title for this page.
+ * `openCount` (MR/issue lists) is appended as "(n)".
+ */
+export function shortTitle(page: PageContext, title: string, openCount?: number): string {
   const scope = page.scope;
   if (!scope || scope.type === 'dashboard') return title;
   const name = scope.fullPath.split('/').pop() || scope.fullPath;
@@ -25,7 +33,7 @@ export function shortTitle(page: PageContext, title: string): string {
   if (segs.length <= 1) return name;
 
   const list = LIST_LABEL[page.kind];
-  if (list) return `${name} · ${list}`;
+  if (list) return `${name} · ${list}${openCount === undefined ? '' : ` (${openCount})`}`;
 
   if (page.kind === 'mr' || page.kind === 'issue') {
     // Sub-tabs may prepend a section ("Changes · Title (!1) · ..."), so search every segment.
@@ -47,8 +55,38 @@ export default defineFeature({
   description:
     'Lead tab titles with the repo name, e.g. "web-app · MRs" or "web-app !12 Fix login".',
   defaultOn: true,
-  init({ page }) {
-    tabTitle.setRewrite((t) => shortTitle(page, t));
+  init({ page, api, log, signal }) {
+    let count: number | undefined;
+    tabTitle.setRewrite((t) => shortTitle(page, t, count));
+
+    const path = openCountPath(page, api);
+    if (path) {
+      const refresh = async () => {
+        try {
+          const n = await api.total(path, { signal });
+          if (signal.aborted || n === count) return;
+          count = n;
+          tabTitle.setRewrite((t) => shortTitle(page, t, count));
+        } catch (err) {
+          log.debug('open count unavailable', err);
+        }
+      };
+      void refresh();
+      const id = setInterval(() => {
+        if (document.visibilityState === 'hidden') void refresh();
+      }, COUNT_REFRESH_MS);
+      signal.addEventListener('abort', () => clearInterval(id));
+    }
     return () => tabTitle.setRewrite(undefined);
   },
 });
+
+/** REST list path whose X-Total is the number of open MRs/issues for a list page's scope. */
+export function openCountPath(page: PageContext, api: GitLabApi): string | undefined {
+  const res =
+    page.kind === 'mr-list' ? 'merge_requests' : page.kind === 'issue-list' ? 'issues' : undefined;
+  const scope = page.scope;
+  if (!res || !scope || scope.type === 'dashboard') return undefined;
+  const base = scope.type === 'project' ? api.project(scope.fullPath) : api.group(scope.fullPath);
+  return `${base}/${res}?state=opened&per_page=1`;
+}

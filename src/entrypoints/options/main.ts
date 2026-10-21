@@ -46,7 +46,7 @@ function freshnessCard(s: Settings) {
       f.hiddenThresholdSec,
       (v) => set({ hiddenThresholdSec: v }),
     ),
-    switchRow('Poll while visible', 'Shows a banner when something changes.', f.poll, (v) =>
+    switchRow('Poll while visible', 'Checks the page for changes every few seconds.', f.poll, (v) =>
       set({ poll: v }),
     ),
     numberRow('Poll interval (s)', '', f.pollIntervalSec, (v) =>
@@ -64,11 +64,11 @@ function freshnessCard(s: Settings) {
       h(
         'div',
         {},
-        h('div', {}, 'When a change is found on return'),
+        h('div', {}, 'When a page is out of date'),
         h(
           'p',
           {},
-          'Auto-reload only happens when nothing would be lost (no drafts, dialogs, selections).',
+          'Background tabs refresh right away; the tab you are on refreshes once you pause. Never while you are typing or have a dialog or selection open.',
         ),
       ),
       h(
@@ -77,7 +77,7 @@ function freshnessCard(s: Settings) {
           onchange: (e: Event) =>
             set({ mode: (e.target as HTMLSelectElement).value as FreshnessSettings['mode'] }),
         },
-        h('option', { value: 'auto', selected: f.mode === 'auto' }, 'Reload automatically'),
+        h('option', { value: 'auto', selected: f.mode === 'auto' }, 'Refresh in the background'),
         h('option', { value: 'banner', selected: f.mode === 'banner' }, 'Only show a banner'),
       ),
     ),

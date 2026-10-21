@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parsePage } from '@/core/page';
-import { shortTitle } from './index';
+import { createApi } from '@/core/api';
+import { openCountPath, shortTitle } from './index';
 
 const page = (path: string, dataPage = '') =>
   parsePage(new URL(`https://gitlab.com${path}`), {
@@ -49,5 +50,28 @@ describe('shortTitle', () => {
   it('leaves dashboard and unscoped pages alone', () => {
     expect(shortTitle(page('/dashboard/todos'), 'To-Do List · GitLab')).toBe('To-Do List · GitLab');
     expect(shortTitle(page('/explore'), 'Explore · GitLab')).toBe('Explore · GitLab');
+  });
+});
+
+describe('open counts', () => {
+  it('appends the open count to list titles', () => {
+    expect(
+      shortTitle(page('/c/e/web-app/-/merge_requests'), `Merge requests · ${P} · GitLab`, 3),
+    ).toBe('web-app · MRs (3)');
+    expect(shortTitle(page('/c/e/web-app/-/issues'), `Issues · ${P} · GitLab`, 0)).toBe(
+      'web-app · Issues (0)',
+    );
+  });
+
+  it('counts open items in the page scope only', () => {
+    const api = createApi('https://gitlab.com');
+    expect(openCountPath(page('/c/e/web-app/-/merge_requests'), api)).toBe(
+      'projects/c%2Fe%2Fweb-app/merge_requests?state=opened&per_page=1',
+    );
+    expect(openCountPath(page('/groups/acme/-/issues'), api)).toBe(
+      'groups/acme/issues?state=opened&per_page=1',
+    );
+    expect(openCountPath(page('/dashboard/merge_requests'), api)).toBeUndefined();
+    expect(openCountPath(page('/c/e/web-app/-/merge_requests/3'), api)).toBeUndefined();
   });
 });

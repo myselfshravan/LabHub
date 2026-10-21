@@ -58,11 +58,12 @@ added to the page must be removed on cleanup. Register in `src/features/index.ts
 API "fingerprints" per page kind (fingerprint.ts). MR: state/draft/sha/pipeline/notes/conflicts/
 approvals (NOT `detailed_merge_status` — it flaps). Project lists: rendered row iids + newest
 item; group/dashboard lists: same query in the page's own sort (group iid lookups 408).
-Jobs via page JSON (`/-/jobs/:id.json`; REST is 401 signed-out). Triggers: return to tab →
-auto-reload only if safe (safety.ts: no typed text/dialog/selection), else banner; visible
-polling → banner only; idle (no input ≥ idleAfterSec) pauses polling and next input counts as
+Jobs via page JSON (`/-/jobs/:id.json`; REST is 401 signed-out). Owner wants **background refresh, not the banner**: hidden tabs reload as soon as
+stale (60s hidden check); the visible tab reloads once input has been quiet for QUIET_MS; never
+when unsafe (safety.ts: typed text/dialog/selection) — then banner + pending retry. Return to
+tab / online / bfcache refresh immediately; idle (no input ≥ idleAfterSec) pauses polling and next input counts as
 returning; offline/backoff skip background checks. Pipeline/job pages are live already: title
-status only. Hidden CI tabs refresh title every 60s. Desktop notifications (notify.ts →
+status only. Tab titles on MR/issue lists show the open count `(n)` via api.total (tab-titles). Desktop notifications (notify.ts →
 background) on CI finish / merged / closed / new approval while not looking. Scroll restore.
 
 ### github-theme (theme.css, pure CSS)
